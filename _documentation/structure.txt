@@ -1,0 +1,61 @@
+%php spark cache:clear
+%php spark routes
+%php spark make:controller NomController
+%php spark make:model NomModel
+%php spark make:migration CreateCompetitionsTable
+%php spark migrate
+%php spark env
+%php spark filter:check
+
+Toujours vérifier :
+1️⃣ Nom du dossier = Namespace
+2️⃣ Nom du fichier = Nom exact de la classe
+3️⃣ Route = Chemin complet vers namespace
+4️⃣ Sensible à la casse
+
+
+Séparation claire par modules métier
+Pas de mélange Home / Préparation / Jugement
+Modèles dédiés
+Vues organisées
+Évolutif vers multi-UR si besoin
+Compatible déploiement serveur ultérieur
+
+Pourquoi des sous-dossiers Controllers ?
+Parce que :
+Préparation peut avoir plusieurs méthodes
+Upload ZIP
+Refresh
+Update juges
+PTE info
+Delete
+Si tu mets tout dans un seul contrôleur plat, ça devient vite illisible.
+
+Cette structure te permet :
+d’ajouter des middlewares plus tard
+de filtrer par rôle
+de gérer plusieurs saisons
+d’isoler des fonctionnalités par module
+d’évoluer vers API si besoin
+
+app/
+ ├── Controllers/
+ │     ├── Dashboard.php
+ │     ├── Preparation/
+ │     │     └── PreparationController.php
+ │     ├── Judgement/
+ │     │     └── JudgementController.php
+ │     └── Results/
+ │           └── ResultsController.php
+ │
+ ├── Models/
+ │     ├── CompetitionModel.php
+ │     ├── JudgeModel.php
+ │     └── PhotoModel.php
+ │
+ ├── Views/
+ │     ├── layout/
+ │     ├── dashboard/
+ │     ├── preparation/
+ │     ├── judgement/
+ │     └── results/

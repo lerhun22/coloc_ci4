@@ -1,0 +1,49 @@
+@import "tokens.css";
+@import "base.css";
+@import "layout.css";
+@import "components.css";
+@import "navigation.css";
+@import "tables.css";
+@import "pages.css";
+@import "utilities.css";
+
+
+/* =====================================================
+   GLOBAL APP
+   ===================================================== */
+
+html,
+body {
+    height: 100%;
+}
+
+.app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+    width: 100%;
+}
+
+
+/* main ne doit PAS centrer ici */
+
+main {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* =====================================================
+   CONTAINER CENTRÉ
+   ===================================================== */
+
+.container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}

@@ -1,0 +1,276 @@
+/* =====================================
+   CONTAINER GLOBAL
+===================================== */
+
+.jugement-container {
+  display: flex;
+  flex-direction: column;
+
+  height: calc(100vh - 110px);
+
+  gap: 10px;
+
+  padding: 8px 10px;
+}
+
+/* =====================================
+   FILTRES
+===================================== */
+
+.jugement-filters {
+  display: flex;
+  align-items: center;
+
+  gap: 24px;
+
+  padding: 12px 18px;
+
+  background: #3b5391;
+  color: white;
+
+  border-radius: 4px;
+}
+
+.jugement-filters input {
+  padding: 4px 6px;
+}
+
+/* =====================================
+   GRILLE VIGNETTES
+===================================== */
+
+.jugement-grid {
+  display: grid;
+
+  grid-template-columns: repeat(auto-fill, 34px);
+
+  gap: 7px;
+
+  padding: 10px 12px;
+
+  background: #e6e6e6;
+
+  height: 100px;
+
+  overflow-y: auto;
+
+  border-radius: 4px;
+}
+
+/* cases */
+
+.photo-tile {
+  width: 34px;
+  height: 34px;
+
+  font-size: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #ccc;
+
+  border-radius: 3px;
+
+  cursor: pointer;
+}
+
+/* états */
+
+.photo-tile.pending {
+  background: #ccc;
+}
+
+.photo-tile.partial {
+  background: orange;
+}
+
+.photo-tile.done {
+  background: green;
+  color: white;
+}
+
+.photo-tile.disq {
+  background: red;
+  color: white;
+}
+
+.photo-tile.active {
+  outline: 2px solid #2d4ea2;
+}
+
+/* =====================================
+   ZONE PRINCIPALE
+===================================== */
+
+.jugement-main {
+  flex: 1;
+  min-height: 0;
+
+  display: grid;
+
+  grid-template-columns: 1fr 340px 280px;
+
+  gap: 18px;
+
+  padding: 10px;
+}
+
+/* =====================================
+   PHOTO
+===================================== */
+
+.jugement-photo {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+}
+
+.jugement-photo img {
+  max-width: 100%;
+  max-height: 100%;
+
+  width: auto;
+  height: auto;
+
+  object-fit: contain;
+}
+
+/* =====================================
+   NOTES / INFOS
+===================================== */
+
+.jugement-notes,
+.jugement-infos {
+  background: #f5f5f5;
+
+  padding: 18px;
+
+  border-radius: 6px;
+
+  overflow-y: auto;
+}
+
+/* titres */
+
+.jugement-notes h3,
+.jugement-infos h3 {
+  margin-top: 0;
+}
+
+/* =====================================
+   INPUTS NOTES
+===================================== */
+
+.jugement-notes input[type="number"] {
+  width: 70px;
+
+  margin-bottom: 10px;
+
+  padding: 4px;
+}
+
+/* =====================================
+   TOTAL
+===================================== */
+
+#total {
+  font-weight: bold;
+}
+
+/* =====================================
+   SCROLL propre
+===================================== */
+
+.jugement-grid::-webkit-scrollbar,
+.jugement-notes::-webkit-scrollbar,
+.jugement-infos::-webkit-scrollbar {
+  width: 6px;
+}
+
+.jugement-grid::-webkit-scrollbar-thumb,
+.jugement-notes::-webkit-scrollbar-thumb,
+.jugement-infos::-webkit-scrollbar-thumb {
+  background: #bbb;
+  border-radius: 3px;
+}
+
+.zoom-overlay {
+  position: fixed;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.95);
+
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+
+  z-index: 999999;
+
+  pointer-events: none;
+}
+
+.zoom-overlay.active {
+  display: flex;
+  pointer-events: auto;
+}
+
+.zoom-overlay img {
+  max-width: 95vw;
+  max-height: 95vh;
+
+  object-fit: contain;
+}
+
+.jugement-dq {
+  margin-top: 15px;
+  padding: 10px;
+
+  background: #fff3f3;
+
+  border: 1px solid #ffbcbc;
+  border-radius: 6px;
+}
+
+.btn-disqualify {
+  width: 100%;
+  padding: 14px;
+
+  font-size: 18px;
+  font-weight: bold;
+
+  border: none;
+  border-radius: 6px;
+
+  cursor: pointer;
+
+  background: #2e7d32; /* vert */
+  color: white;
+}
+
+.btn-disqualify.disq {
+  background: #c62828; /* rouge */
+}
+
+.disqualify-box {
+  margin-top: 20px;
+}
+
+.photo-tile.disq {
+  background: #000;
+  color: #fff;
+}
+
+.photo-path {
+  font-size: 12px;
+  color: #666;
+
+  word-break: break-all;
+}

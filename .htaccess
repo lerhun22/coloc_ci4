@@ -1,0 +1,8 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /coloc_v3/
+
+    # Redirect to public folder
+    RewriteCond %{REQUEST_URI} !^/coloc_v3/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
