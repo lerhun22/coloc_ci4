@@ -6,24 +6,22 @@
 
 html,
 body {
-    min-height: 100%;
+  min-height: 100%;
 }
 
 body {
-    overflow-x: hidden;
+  overflow-x: hidden;
 }
-
 
 /* ===============================
    APP CONTAINER
    =============================== */
 
 .app-container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-
 
 /* ===============================
    MAIN CONTENT
@@ -31,43 +29,37 @@ body {
    =============================== */
 
 .main-content {
-    flex: 1;
+  flex: 1;
 
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    width: 100%;
-    max-width: 100%;
+  width: 100%;
+  max-width: 100%;
 }
-
 
 /* ===============================
    MAIN (contenu des pages)
    =============================== */
 
-/* ===============================
-   MAIN
-   =============================== */
-
 .main-content {
-    width: 100%;
-    display: flex;
-    justify-content: center;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
-
 
 /* wrapper centré */
 
 .page-wrapper {
-    width: 100%;
-    max-width: 1200px;
-    padding: 20px;
+  width: 100%;
+  max-width: 1200px;
+  padding: 20px;
 }
 
 .app-footer {
-    width: 100%;
+  width: 100%;
 }
 
 .app-footer .page-wrapper {
-    padding: 10px 20px;
+  padding: 10px 20px;
 }

@@ -5,20 +5,9 @@
 
     <meta charset="UTF-8">
 
-    <title>UR22 – COLOC</title>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-
-    <!-- CSS global -->
+    <title><?= $title ?? 'COLOC' ?></title>
 
     <link rel="stylesheet" href="<?= base_url('css/app.css') ?>">
-
-
-    <!-- CSS page -->
-
-    <?= $this->renderSection('styles') ?>
-
 
 </head>
 
@@ -26,12 +15,12 @@
 
     <div class="app-container">
 
-        <?= $this->include('layout/header') ?>
+        <?= view('layout/header') ?>
 
 
-        <main class="main-content <?= $page ?? '' ?>">
+        <main class="main-content">
 
-            <div class="page-wrapper">
+            <div class="container">
 
                 <?= $this->renderSection('content') ?>
 
@@ -39,17 +28,7 @@
 
         </main>
 
-
-        <?= $this->include('layout/footer') ?>
-
     </div>
-
-
-
-    <!-- JS page -->
-
-    <?= $this->renderSection('scripts') ?>
-
 
 </body>
 

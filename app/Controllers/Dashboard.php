@@ -4,15 +4,15 @@ namespace App\Controllers;
 
 class Dashboard extends BaseController
 {
-public function index()
-{
-    $configPath = WRITEPATH . 'config/application.ini';
+    public function index()
+    {
+        $configPath = WRITEPATH . 'config/application.ini';
 
-    $app_config = file_exists($configPath)
-        ? parse_ini_file($configPath)
-        : [];
+        $app_config = file_exists($configPath)
+            ? parse_ini_file($configPath)
+            : [];
 
-$data = array_merge($this->data, [
+        $data = array_merge($this->data, [
             'current_version'      => $app_config['version-no'] ?? '',
             'current_version_date' => $app_config['version-update'] ?? '',
             'official_build'       => $app_config['official-build'] ?? '0',

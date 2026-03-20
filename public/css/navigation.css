@@ -1,305 +1,79 @@
 /* =====================================================
    COLOC V3 – NAVIGATION
-   Header + menu principal + dropdown compétitions
    ===================================================== */
 
-
-/* =========================
-   HEADER
-   ========================= */
-
-.app-header{
-background:#1E3A8A;
-padding:12px 0;
+.app-header {
+  background: #1e3a8a;
+  padding: 12px 0;
 }
 
-.header-container{
-max-width:1100px;
-margin:0 auto;
-padding:0 40px;
+/* IMPORTANT : pas de max-width ici */
 
-display:flex;
-align-items:center;
+.header-container {
+  display: flex;
+  align-items: center;
 }
-
 
 /* =========================
    LOGO
    ========================= */
 
-.header-brand a{
-color:#FFFFFF;
-font-weight:600;
-text-decoration:none;
-font-size:16px;
+.header-brand a {
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 16px;
 }
-
 
 /* =========================
-   MENU PRINCIPAL
+   MENU
    ========================= */
 
-.header-nav{
-display:flex;
-gap:28px;
-margin:0 auto;
+.header-nav {
+  display: flex;
+  gap: 28px;
+  margin-left: 40px;
 }
 
-.header-nav a{
-color:rgba(255,255,255,0.85);
-text-decoration:none;
-font-size:14px;
-font-weight:500;
-position:relative;
-transition:color 0.15s ease;
+.header-nav a {
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-/* empêcher couleur navigateur */
-
-.header-nav a:visited{
-color:rgba(255,255,255,0.85);
-}
-
-/* hover */
-
-.header-nav a:hover{
-color:#FFFFFF;
-}
-
-
-/* =========================
-   LIEN ACTIF MENU
-   ========================= */
-
-.header-nav > a.active,
-.header-nav .nav-item > a.active{
-color:#FFFFFF;
-position:relative;
-}
-
-.header-nav > a.active::after,
-.header-nav .nav-item > a.active::after{
-content:"";
-position:absolute;
-left:0;
-bottom:-6px;
-width:100%;
-height:2px;
-background:rgba(255,255,255,0.8);
-border-radius:2px;
-}
-
-
-/* =========================
-   BADGE ROLE
-   ========================= */
-
-.badge-role{
-background:rgba(255,255,255,0.15);
-color:#FFFFFF;
-padding:6px 10px;
-border-radius:6px;
-font-size:13px;
-}
-
-
-/* =========================
-   NAV ITEM (dropdown parent)
-   ========================= */
-
-.nav-item{
-position:relative;
-}
-
-
-/* =========================
-   DROPDOWN MENU
-   ========================= */
-
-.dropdown-menu{
-
-position:absolute;
-top:100%;
-left:0;
-
-background:white;
-
-min-width:420px;
-max-width:580px;
-
-border-radius:10px;
-
-box-shadow:0 12px 30px rgba(0,0,0,0.18);
-
-padding:8px 0;
-
-display:none;
-
-z-index:1000;
-
-max-height:420px;
-overflow-y:auto;
-}
-
-/* ouverture dropdown */
-
-.nav-item:hover .dropdown-menu{
-display:block;
-}
-
-
-/* =========================
-   ITEMS COMPETITIONS
-   ========================= */
-
-.dropdown-item{
-
-display:flex;
-align-items:center;
-
-padding:10px 16px;
-
-font-size:14px;
-
-color:#111827;
-text-decoration:none;
-
-transition:background 0.15s ease, color 0.15s ease;
-
-}
-
-/* hover */
-
-.dropdown-item:hover{
-background:#EEF2FF;
-color:#1E3A8A;
+.header-nav a:hover {
+  color: #ffffff;
 }
 
 /* actif */
 
-.dropdown-item.active{
-background:#EEF2FF;
-color:#1E3A8A;
-font-weight:500;
+.header-nav > a.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 2px;
+  background: white;
 }
-
 
 /* =========================
-   NOM COMPETITION
-   ========================= */
-.comp-name{
-display:flex;
-align-items:center;
-flex:1;
-}
-
-.comp-name::after{
-content:"";
-flex:1;
-border-bottom:1px dotted #D1D5DB;
-margin:0 10px;
-transform:translateY(-2px);
-}
-
-
-/* =========================
-   BADGE NOMBRE PHOTOS
+   BADGE
    ========================= */
 
-.comp-count{
-
-flex-shrink:0;
-
-min-width:28px;
-
-text-align:center;
-
-font-size:12px;
-
-color:#374151;
-
-background:#E5E7EB;
-
-padding:3px 8px;
-
-border-radius:8px;
-
-font-weight:500;
-
+.header-competition {
+  margin-left: auto;
 }
 
-
-/* =========================
-   DIVIDER
-   ========================= */
-
-.dropdown-divider{
-height:1px;
-background:#E5E7EB;
-margin:6px 0;
+.badge-competition {
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
 }
 
-
-/* =========================
-   LIEN "VOIR TOUTES"
-   ========================= */
-
-.dropdown-all{
-font-weight:500;
-color:#1E3A8A;
-}
-
-
-/* =========================
-   ETAT VIDE
-   ========================= */
-
-.dropdown-empty{
-padding:10px 16px;
-font-size:13px;
-color:#6B7280;
-}
-
-
-/* =========================
-   INDICATEUR DROPDOWN
-   ========================= */
-
-.nav-item > a::after{
-content:" ▾";
-font-size:12px;
-margin-left:4px;
-opacity:0.7;
-}
-
-/* =====================================================
-   CORRECTION COULEUR DROPDOWN
-   ===================================================== */
-
-.dropdown-menu a{
-color:#111827 !important;
-}
-
-.dropdown-menu a:hover{
-background:#EEF2FF;
-color:#1E3A8A !important;
-}
-
-.dropdown-menu a.active{
-background:#EEF2FF;
-color:#1E3A8A !important;
-font-weight:500;
-}
-
-.dropdown-divider{
-height:1px;
-background:#E5E7EB;
-margin:8px 0;
-opacity:0.7;
-}
-
-.dropdown-all{
-font-weight:500;
-color:#1E3A8A;
-padding-top:12px;
+.badge-competition.none {
+  opacity: 0.6;
 }

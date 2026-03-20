@@ -10,6 +10,7 @@ class CompetitionModel extends Model
     protected $primaryKey = 'id';
 
     protected $allowedFields = [
+        'id',
         'numero',
         'type',
         'urs_id',
@@ -82,5 +83,4 @@ class CompetitionModel extends Model
             ->get()
             ->getResultArray();
     }
-
 }

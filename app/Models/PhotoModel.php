@@ -13,16 +13,32 @@ class PhotoModel extends Model
     protected $returnType = 'array';
 
     protected $allowedFields = [
-        'competition_id',
-        'barcode',
-        'file',
-        'title',
-        'author',
-        'judge1',
-        'judge2',
-        'judge3',
-        'total',
-        'medailles_id'
-    ];
 
+        'id',
+
+        'ean',
+
+        'competitions_id',
+
+        'participants_id',
+
+        'titre',
+
+        'statut',
+
+        'place',
+
+        'note_totale',
+
+        'saisie',
+
+        'retenue',
+
+        'medailles_id',
+
+        'passage',
+
+        'disqualifie'
+
+    ];
 }

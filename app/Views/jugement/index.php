@@ -8,64 +8,65 @@
 
 <div class="jugement-container">
 
-
     <!-- =====================================================
          FILTRES
     ====================================================== -->
 
     <div class="jugement-filters">
 
-        <!-- Code barre -->
+        <!-- =========================
+         LIGNE HAUT
+    ========================== -->
 
-        <div>
-            Code barre
-            <input type="text" id="filter-ean">
-        </div>
+        <div class="filters-top">
 
-        <!-- Passage -->
+            <div class="filters-left">
 
-        <div>
-            Passage
-            <input type="number" id="filter-passage">
-        </div>
+                <div>
+                    Code barre
+                    <input type="text" id="filter-ean">
+                </div>
 
+                <div>
+                    Passage
+                    <input type="number" id="filter-passage">
+                </div>
 
-        <!-- Etat -->
-
-        <div class="filters-state">
-
-            <label>
-                <input type="checkbox" id="filter-pending" class="filter-checkbox" checked>
-                Pending
-            </label>
-
-            <label>
-                <input type="checkbox" id="filter-partial" class="filter-checkbox" checked>
-                Partial
-            </label>
-
-            <label>
-                <input type="checkbox" id="filter-done" class="filter-checkbox" checked>
-                Done
-            </label>
+            </div>
 
         </div>
 
 
-        <!-- Progress -->
+        <!-- =========================
+         BLOC INFO COMPETITION
+    ========================== -->
 
-        <div class="jugement-progress">
+        <div class="filters-info">
 
-            <?= esc($competition['nom']) ?> —
+            <div class="filters-state">
 
-            Photo
+                <label>
+                    <input type="checkbox" id="filter-pending" class="filter-checkbox" checked>
+                    Reste
+                </label>
+
+                <label>
+                    <input type="checkbox" id="filter-partial" class="filter-checkbox" checked>
+                    Partiel
+                </label>
+
+                <label>
+                    <input type="checkbox" id="filter-done" class="filter-checkbox" checked>
+                    Jugés
+                </label>
+
+            </div>
+
+        </div>
+        <div class="filters-right">
             <span id="photo-position"><?= $position ?></span>
             /
             <span id="photo-total"><?= $total ?></span>
-
-            — passage
-            <span id="photo-numero"><?= $photo['passage'] ?></span>
-
         </div>
 
     </div>
@@ -80,7 +81,7 @@
 
         <?php foreach ($photos as $p): ?>
 
-        <?php
+            <?php
 
             if ($p['nb_notes'] == 0) {
                 $class = 'pending';
@@ -92,12 +93,12 @@
 
             ?>
 
-        <div class="photo-tile <?= $class ?>" data-id="<?= $p['id'] ?>" data-ean="<?= $p['ean'] ?>"
-            data-passage="<?= $p['passage'] ?>">
+            <div class="photo-tile <?= $class ?>" data-id="<?= $p['id'] ?>" data-ean="<?= $p['ean'] ?>"
+                data-passage="<?= $p['passage'] ?>">
 
-            <?= $p['passage'] ?>
+                <?= $p['passage'] ?>
 
-        </div>
+            </div>
 
         <?php endforeach; ?>
 
@@ -120,7 +121,7 @@
 
             <?php if (!empty($photo)): ?>
 
-            <img src="<?= base_url(
+                <img src="<?= base_url(
                                 'uploads/competitions/' .
                                     $competitionFolder .
                                     '/photos/' .
@@ -132,8 +133,6 @@
 
         </div>
 
-
-
         <!-- ======================
              NOTES
         ======================= -->
@@ -144,12 +143,12 @@
 
             <?php foreach ($juges as $i => $j): ?>
 
-            <div>
-                Juge <?= $i + 1 ?> :
-                <?= esc($j['nom']) ?>
-            </div>
+                <div>
+                    Juge <?= $i + 1 ?> :
+                    <?= esc($j['nom']) ?>
+                </div>
 
-            <input type="number" class="note-input" data-juge="<?= $j['id'] ?>" min="6" max="20">
+                <input type="number" class="note-input" data-juge="<?= $j['id'] ?>" min="6" max="20">
 
             <?php endforeach; ?>
 
@@ -163,15 +162,12 @@
         </div>
 
 
-
         <!-- ======================
              INFOS
         ======================= -->
 
         <div class="jugement-infos">
-
-            <h3>Infos</h3>
-
+            <h3><?= esc($competition['nom']) ?></h3>
             <p>
                 <strong>Titre :</strong>
                 <span id="photo-titre">
@@ -195,6 +191,30 @@
 
             </p>
 
+            <div class="jugement-stats">
+
+                <div class="stat">
+                    <div class="stat-value" id="count-done">0</div>
+                    <div class="stat-label">Jugées</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-value" id="count-partial">0</div>
+                    <div class="stat-label">Partielles</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-value" id="count-pending">0</div>
+                    <div class="stat-label">Restantes</div>
+                </div>
+
+                <div class="stat-total">
+                    /
+                    <span id="count-total">0</span>
+                </div>
+
+            </div>
+
 
             <!-- Disqualify -->
 
@@ -217,7 +237,7 @@
 <?= $this->endSection() ?>
 
 <script>
-console.log("COMPETITION", <?= $competition_id ?>);
+    console.log("COMPETITION", <?= $competition_id ?>);
 </script>
 
 <?= $this->section('scripts') ?>
@@ -233,11 +253,11 @@ console.log("COMPETITION", <?= $competition_id ?>);
 
 
 <script>
-let competition_id = <?= $competition_id ?>;
-console.log("competition_id JS =", <?= $competition_id ?>);
-let nb_juges = <?= $nb_juges ?>;
-let folder = "<?= $competitionFolder ?>";
-let base_url = "<?= base_url() ?>";
+    let competition_id = <?= $competition_id ?>;
+    console.log("competition_id JS =", <?= $competition_id ?>);
+    let nb_juges = <?= $nb_juges ?>;
+    let folder = "<?= $competitionFolder ?>";
+    let base_url = "<?= base_url() ?>";
 </script>
 
 <script src="<?= base_url('js/jugement.js') ?>"></script>

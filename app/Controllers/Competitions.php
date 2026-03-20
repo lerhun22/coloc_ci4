@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\CompetitionModel;
 use App\Models\PhotoModel;
+use App\Libraries\CompetitionService;
 
 class Competitions extends BaseController
 {
@@ -14,14 +15,56 @@ class Competitions extends BaseController
         $this->photoModel = new PhotoModel();
     }
 
+
+    /*
+    ==========================
+    LISTE DES COMPÉTITIONS
+    ==========================
+    */
+
     public function index()
     {
-        $model = new \App\Models\CompetitionModel();
-        $data = $this->data;
-        $data['competitions_list'] = $model->getCompetitionsWithCount();
+        $model = new CompetitionModel();
 
-        return view('competitions/index', $data);
+        $this->data['competitions_list'] =
+            $model->getCompetitionsWithCount();
+
+        $this->data['page_css'] = 'competitions.css';
+
+        return view(
+            'competitions/index',
+            $this->data
+        );
     }
+
+
+    /*
+    ==========================
+    SELECT
+    ==========================
+    */
+
+    public function select($id)
+    {
+        $model = new CompetitionModel();
+
+        $competition = $model->find($id);
+
+        if (!$competition) {
+            return redirect()->to('/competitions');
+        }
+
+        CompetitionService::setActive($id);
+
+        return redirect()->to('/competitions');
+    }
+
+
+    /*
+    ==========================
+    SHOW
+    ==========================
+    */
 
     public function show($id)
     {
@@ -33,18 +76,38 @@ class Competitions extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 
-        session()->set('competition_id', $id);
+        if (CompetitionService::getActive() != $id) {
+            CompetitionService::setActive($id);
+        }
 
-        return redirect()->to(site_url('competitions/' . $id . '/photos'));
+        return redirect()->to(
+            site_url('competitions/' . $id . '/photos')
+        );
     }
 
-    public function photos($id)
+
+    /*
+    ==========================
+    PHOTOS
+    ==========================
+    */
+
+    public function photos($id = null)
     {
-        session()->set('competition_id', $id);
+        if (!$id) {
+            $id = CompetitionService::getActive();
+        }
 
-        $competitionModel = new \App\Models\CompetitionModel();
+        if (!$id) {
+            return redirect()->to('/competitions');
+        }
 
-        $competition = $competitionModel->getCompetitionStats($id);
+        CompetitionService::setActive($id);
+
+        $competitionModel = new CompetitionModel();
+
+        $competition =
+            $competitionModel->getCompetitionStats($id);
 
         if (!$competition) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
@@ -54,14 +117,15 @@ class Competitions extends BaseController
 
         $photos = $db->table('photos p')
             ->select("
-            p.id,
-            p.ean,
-            p.titre,
-            p.saisie,
-            p.place,
-            pa.nom AS auteur,
-            cl.nom AS club
-        ")
+                p.id,
+                p.ean,
+                p.titre,
+                p.saisie,
+                p.passage,
+                p.place,
+                pa.nom AS auteur,
+                cl.nom AS club
+            ")
             ->join('participants pa', 'pa.id = p.participants_id', 'left')
             ->join('clubs cl', 'cl.id = pa.clubs_id', 'left')
             ->where('p.competitions_id', $id)
@@ -70,56 +134,96 @@ class Competitions extends BaseController
             ->get()
             ->getResultArray();
 
-        return view('competitions/photos', [
-            'competition' => $competition,
-            'photos' => $photos
-        ]);
+        $this->data['competition'] = $competition;
+        $this->data['photos'] = $photos;
+
+        return view(
+            'competitions/photos',
+            $this->data
+        );
     }
 
 
-    public function notation($competition_id)
+    /*
+    ==========================
+    NOTATION
+    ==========================
+    */
+
+    public function notation($competition_id = null)
     {
+        if (!$competition_id) {
+            $competition_id = CompetitionService::getActive();
+        }
+
+        if (!$competition_id) {
+            return redirect()->to('/competitions');
+        }
+
+        CompetitionService::setActive($competition_id);
+
         $competitionModel = new CompetitionModel();
 
-        $competition = $competitionModel->find($competition_id);
+        $competition =
+            $competitionModel->find($competition_id);
 
-        $data = [
-            'competition' => $competition
-        ];
+        $this->data['competition'] = $competition;
 
-        return view('competitions/notation', $data);
+        return view(
+            'competitions/notation',
+            $this->data
+        );
     }
 
-    public function scan($competitionId)
+
+    /*
+    ==========================
+    SCAN
+    ==========================
+    */
+
+    public function scan($competitionId = null)
     {
-        $barcode = $this->request->getPost('barcode');
+        if (!$competitionId) {
+            $competitionId = CompetitionService::getActive();
+        }
+
+        if (!$competitionId) {
+            return redirect()->to('/competitions');
+        }
+
+        $ean = $this->request->getPost('ean');
 
         $photo = $this->photoModel
-            ->where('barcode', $barcode)
+            ->where('ean', $ean)
+            ->where('competitions_id', $competitionId)
             ->first();
 
-        return view('competitions/notation', [
-            'photo' => $photo,
-            'competitionId' => $competitionId
-        ]);
+        $this->data['photo'] = $photo;
+        $this->data['competitionId'] = $competitionId;
+
+        return view(
+            'competitions/notation',
+            $this->data
+        );
     }
 
-    public function saveNotes($competitionId)
+
+    /*
+    ==========================
+    SAVE NOTES
+    ==========================
+    */
+
+    public function saveNotes($competitionId = null)
     {
-        $photoId = $this->request->getPost('photo_id');
+        if (!$competitionId) {
+            $competitionId = CompetitionService::getActive();
+        }
 
-        $j1 = $this->request->getPost('judge1');
-        $j2 = $this->request->getPost('judge2');
-        $j3 = $this->request->getPost('judge3');
-
-        $total = $j1 + $j2 + $j3;
-
-        $this->photoModel->update($photoId, [
-            'judge1' => $j1,
-            'judge2' => $j2,
-            'judge3' => $j3,
-            'total' => $total
-        ]);
+        if (!$competitionId) {
+            return redirect()->to('/competitions');
+        }
 
         return redirect()->back();
     }

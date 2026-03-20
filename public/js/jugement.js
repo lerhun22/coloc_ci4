@@ -51,7 +51,7 @@ function loadPhoto(id) {
 
       let url =
         base_url +
-        "/uploads/competitions/" +
+        "uploads/competitions/" +
         folder +
         "/photos/" +
         data.photo.ean +
@@ -85,7 +85,6 @@ function loadPhoto(id) {
           document.querySelectorAll(".note-input").forEach((input) => {
             if (String(input.dataset.juge) === jugeId) {
               input.value = n.note;
-
               colorInput(input);
             }
           });
@@ -93,9 +92,7 @@ function loadPhoto(id) {
       }
 
       calcTotal();
-
       updateCounter();
-
       attachZoom();
 
       /* =====================
@@ -121,7 +118,59 @@ function loadPhoto(id) {
       if (tile) {
         tile.classList.toggle("disq", data.photo.disqualifie == 1);
       }
+
+      /* =====================
+         ACTIVE + SCROLL
+      ===================== */
+
+      setActiveThumb(photo_id);
+      scrollToThumb(photo_id);
+      updateJudgementCounts;
     });
+}
+
+/*
+========================
+PHOTO ACTIVE
+========================
+*/
+
+function setActiveThumb(photo_id) {
+  document.querySelectorAll(".photo-tile").forEach((el) => {
+    el.classList.remove("active");
+  });
+
+  let el = document.querySelector('.photo-tile[data-id="' + photo_id + '"]');
+
+  if (el) el.classList.add("active");
+}
+
+/*
+========================
+SCROLL AUTO
+========================
+*/
+
+function scrollToThumb(photo_id) {
+  let el = document.querySelector('.photo-tile[data-id="' + photo_id + '"]');
+
+  if (!el) return;
+
+  el.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
+}
+
+function scrollToThumb(photo_id) {
+  let el = document.querySelector('[data-id="' + photo_id + '"]');
+
+  if (!el) return;
+
+  el.scrollIntoView({
+    behavior: "smooth",
+    block: "center",
+  });
 }
 
 /* =====================================================
@@ -188,6 +237,10 @@ function initNotes() {
       calcTotal();
 
       saveNote(input.dataset.juge, input.value);
+
+      updateJudgementProgress();
+
+      //autoNextIfReady();
     });
   });
 }
@@ -484,6 +537,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initZoom();
   initNotes();
   initFilters();
+  updateJudgementProgress();
 
   document.querySelectorAll(".photo-tile").forEach((tile) => {
     let id = parseInt(tile.dataset.id);
@@ -504,4 +558,90 @@ document.addEventListener("DOMContentLoaded", () => {
   if (photoIndex.length > 0) {
     loadPhoto(photoIndex[0]);
   }
+});
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+/*
+========================
+PROGRESSION
+========================
+*/
+
+function updateProgress() {
+  if (!photo_id) return;
+
+  let text = document.getElementById("progress-text");
+  let bar = document.getElementById("progress-bar-inner");
+
+  if (!text || !bar) return; // DOM pas prêt
+
+  let pos = photoPosition[photo_id];
+
+  if (pos === undefined) return;
+
+  let total = Object.keys(photoPosition).length;
+
+  let current = pos + 1;
+
+  let percent = Math.round((current / total) * 100);
+
+  text.innerText = current + " / " + total + " (" + percent + "%)";
+
+  bar.style.width = percent + "%";
+}
+
+function updateJudgementProgress() {
+  let total = document.querySelectorAll(".photo-tile").length;
+
+  let done = document.querySelectorAll(".photo-tile.done").length;
+
+  let partial = document.querySelectorAll(".photo-tile.partial").length;
+
+  let pending = document.querySelectorAll(".photo-tile.pending").length;
+
+  let text = document.getElementById("progress-text");
+
+  if (!text) return;
+
+  text.innerText =
+    "Jugées : " +
+    done +
+    " / " +
+    total +
+    " — partielles : " +
+    partial +
+    " — restantes : " +
+    pending;
+}
+
+function updateJudgementCounts() {
+  let tiles = document.querySelectorAll(".photo-tile");
+
+  if (!tiles.length) return;
+
+  let total = tiles.length;
+
+  let done = document.querySelectorAll(".photo-tile.done").length;
+
+  let partial = document.querySelectorAll(".photo-tile.partial").length;
+
+  let pending = document.querySelectorAll(".photo-tile.pending").length;
+
+  setText("count-total", total);
+  setText("count-done", done);
+  setText("count-partial", partial);
+  setText("count-pending", pending);
+}
+
+window.addEventListener("load", function () {
+  setTimeout(() => {
+    updateJudgementCounts();
+  }, 200);
 });
