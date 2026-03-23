@@ -20,6 +20,8 @@ $competitionId = $competitionId ?? null;
 
         <!-- NAV -->
 
+        <?php $competitionId = $competitionId ?? null; ?>
+
         <nav class="header-nav">
 
             <a href="<?= site_url('/') ?>" class="<?= uri_string() == '' ? 'active' : '' ?>">
@@ -31,12 +33,18 @@ $competitionId = $competitionId ?? null;
                 Compétitions
             </a>
 
+
+            <!-- PHOTOS -->
+
             <a href="<?= $competitionId
-                            ? site_url('photos')
+                            ? site_url('competitions/' . $competitionId . '/photos')
                             : site_url('competitions') ?>"
                 class="<?= str_contains(uri_string(), 'photos') ? 'active' : '' ?>">
                 Photos
             </a>
+
+
+            <!-- JUGEMENT -->
 
             <a href="<?= $competitionId
                             ? site_url('jugement')
@@ -45,11 +53,21 @@ $competitionId = $competitionId ?? null;
                 Jugement
             </a>
 
+
+            <!-- EXPORT -->
+
             <a href="<?= $competitionId
                             ? site_url('export')
                             : site_url('competitions') ?>"
                 class="<?= str_contains(uri_string(), 'export') ? 'active' : '' ?>">
                 Export
+            </a>
+
+
+            <!-- SUIVI -->
+
+            <a href="<?= site_url('suivi') ?>" class="<?= str_starts_with(uri_string(), 'suivi') ? 'active' : '' ?>">
+                Suivi
             </a>
 
         </nav>
@@ -61,21 +79,23 @@ $competitionId = $competitionId ?? null;
 
             <?php if (!empty($activeCompetition)): ?>
 
-            <span class="badge-competition">
+                <span class="badge-competition">
 
-                <?= esc($activeCompetition['nom']) ?>
+                    <?= esc($activeCompetition['nom']) ?>
 
-                <span>
-                    (<?= $activeCompetition['photo_count'] ?>)
+                    <span>-
+                        <?= $activeCompetition['saison'] ?? '' ?>
+                        <?= $activeCompetition['urs_id'] ?? '' ?>
+                        <?= $activeCompetition['type'] ?? '' ?>
+                        <?= $activeCompetition['id'] ?? '' ?>
+                    </span>
                 </span>
-
-            </span>
 
             <?php else: ?>
 
-            <span class="badge-competition none">
-                Aucune compétition
-            </span>
+                <span class="badge-competition none">
+                    Aucune compétition
+                </span>
 
             <?php endif; ?>
 

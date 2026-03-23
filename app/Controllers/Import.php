@@ -110,16 +110,50 @@ class Import extends BaseController
             return redirect()->to('/import');
         }
 
+        $name =
+            basename($file, '.zip');
+
+
+        /*
+    ==========================
+    DELETE SI EXISTE
+    ==========================
+    */
+
+        $db = \Config\Database::connect();
+
+        $row = $db->table('competitions')
+            ->where('nom', $name)
+            ->get()
+            ->getRowArray();
+
+        if ($row) {
+
+            $competitionId = $row['id'];
+
+            $cleaner =
+                new \App\Libraries\CompetitionCleaner();
+
+            $cleaner->deleteCompetition(
+                $competitionId
+            );
+        }
+
+
+        /*
+    ==========================
+    IMPORT
+    ==========================
+    */
+
         $competitionId =
             $this->importOneZip($path);
 
-        /*
-        Active la compétition
-        */
 
         CompetitionService::setActive(
             $competitionId
         );
+
 
         return redirect()->to(
 
@@ -145,30 +179,75 @@ class Import extends BaseController
         $name =
             basename($file, '.zip');
 
+
         /*
-        Storage compétition
-        */
+    =========================
+    EXTRAIRE ID DU ZIP
+    =========================
+    */
+
+        $parts =
+            explode('_', $name);
+
+        $competitionIdFromZip =
+            end($parts);
+
+
+        /*
+    =========================
+    DELETE SI EXISTE
+    =========================
+    */
+
+        $db =
+            \Config\Database::connect();
+
+        $row =
+            $db->table('competitions')
+            ->where('id', $competitionIdFromZip)
+            ->get()
+            ->getRowArray();
+
+        if ($row) {
+
+            $cleaner =
+                new \App\Libraries\CompetitionCleaner();
+
+            $cleaner->deleteCompetition(
+                $competitionIdFromZip
+            );
+        }
+
+
+        /*
+    =========================
+    STORAGE
+    =========================
+    */
 
         $storage =
             new CompetitionStorage();
 
+
         /*
-        Création dossiers
-        */
+    Création dossiers
+    */
 
         $basePath =
             $storage->createFolders(
                 $name
             );
 
+
         /*
-        Enregistrement DB
-        */
+    Enregistrement DB
+    */
 
         $competitionId =
             $storage->registerCompetition(
                 $name
             );
+
 
         $tempPath =
             $basePath . 'temp/';
@@ -178,8 +257,8 @@ class Import extends BaseController
 
 
         /*
-        UNZIP
-        */
+    UNZIP
+    */
 
         $zip = new ZipArchive;
 
@@ -199,8 +278,8 @@ class Import extends BaseController
 
 
         /*
-        Scan images
-        */
+    SCAN IMAGES
+    */
 
         $files =
             $this->scanImages(
@@ -209,8 +288,8 @@ class Import extends BaseController
 
 
         /*
-        Import photos
-        */
+    IMPORT PHOTOS
+    */
 
         foreach ($files as $f) {
 
@@ -236,14 +315,6 @@ class Import extends BaseController
 
         return $competitionId;
     }
-
-
-
-    /*
-    ========================================================
-    SCAN RECURSIF IMAGES
-    ========================================================
-    */
 
     private function scanImages($dir)
     {

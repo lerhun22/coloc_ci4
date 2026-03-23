@@ -22,8 +22,6 @@ class CopainLegacyReader
             'login' => uniqid()
         ];
 
-        $params2 = http_build_query($params);
-
         $url = $config->url_check_user;
 
         $curl = curl_init();
@@ -31,9 +29,12 @@ class CopainLegacyReader
         curl_setopt_array($curl, [
 
             CURLOPT_URL => $url,
-            CURLOPT_POST => 1,
-            CURLOPT_POSTFIELDS => $params2,
-            CURLOPT_RETURNTRANSFER => 1,
+
+            CURLOPT_POST => true,
+
+            CURLOPT_POSTFIELDS => http_build_query($params),
+
+            CURLOPT_RETURNTRANSFER => true,
 
             CURLOPT_COOKIEJAR => $this->cookie,
             CURLOPT_COOKIEFILE => $this->cookie,
@@ -47,7 +48,10 @@ class CopainLegacyReader
             CURLOPT_FOLLOWLOCATION => true,
 
             CURLOPT_USERAGENT =>
-            "Mozilla/5.0",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+
+            CURLOPT_REFERER =>
+            "https://copain.federation-photo.fr/",
 
         ]);
 

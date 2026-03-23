@@ -6,42 +6,91 @@ use Config\Database;
 
 class CompetitionCleaner
 {
-
-    public function deleteCompetition($competition_id)
+    public function deleteCompetition($id)
     {
-        $db = Database::connect();
+        $db = \Config\Database::connect();
 
-        $tables = [
+        log_message('debug', "DELETE COMPETITION $id");
 
-            'notes',
-            'photos',
-            'juges',
+        $db->table('notes')
+            ->where('competitions_id', $id)
+            ->delete();
 
-            'classements',
-            'classementclubs',
-            'classementauteurs',
+        log_message('debug', "DELETE NOTES");
 
-            'medailles'
+        $db->table('photos')
+            ->where('competitions_id', $id)
+            ->delete();
 
-        ];
+        log_message('debug', "DELETE PHOTOS");
 
-        foreach ($tables as $table) {
+        $db->table('juges')
+            ->where('competitions_id', $id)
+            ->delete();
 
-            if ($db->tableExists($table)) {
+        log_message('debug', "DELETE JUGES");
 
-                $db->table($table)
-                    ->where('competitions_id', $competition_id)
-                    ->delete();
+        $db->table('medailles')
+            ->where('competitions_id', $id)
+            ->delete();
+
+        log_message('debug', "DELETE MEDAILLES");
+
+        $db->table('classements')
+            ->where('competitions_id', $id)
+            ->delete();
+
+        $db->table('classementclubs')
+            ->where('competitions_id', $id)
+            ->delete();
+
+        $db->table('classementauteurs')
+            ->where('competitions_id', $id)
+            ->delete();
+
+        log_message('debug', "DELETE CLASSEMENTS");
+
+        $db->table('competitions')
+            ->where('id', $id)
+            ->delete();
+
+        log_message('debug', "DELETE COMPET ROW");
+
+        /*
+    dossier photos
+    */
+
+        $dir =
+            FCPATH .
+            "uploads/competitions/$id";
+
+        if (is_dir($dir)) {
+
+            helper('filesystem');
+
+            delete_files($dir, true);
+
+            @rmdir($dir);
+
+            log_message(
+                'debug',
+                "DELETE DIR $dir"
+            );
+        }
+    }
+
+
+    private function deleteDir($dir)
+    {
+        foreach (glob($dir . '/*') as $file) {
+
+            if (is_dir($file)) {
+                $this->deleteDir($file);
+            } else {
+                unlink($file);
             }
         }
 
-        // competitions = id
-
-        if ($db->tableExists('competitions')) {
-
-            $db->table('competitions')
-                ->where('id', $competition_id)
-                ->delete();
-        }
+        rmdir($dir);
     }
 }

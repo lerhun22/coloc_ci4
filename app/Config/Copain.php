@@ -21,6 +21,8 @@ class Copain extends BaseConfig
     public $url_json =
     "https://copain.federation-photo.fr/webroot/json/";
 
+    public string $url_liste_competitions =
+    'https://copain.federation-photo.fr/api/getCompetitions.php';
 
     /*
     ======================

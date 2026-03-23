@@ -7,6 +7,8 @@ use App\Controllers\BaseController;
 use App\Libraries\CopainClient;
 use App\Libraries\CopainImporter;
 use App\Libraries\CompetitionService;
+use App\Models\CompetitionModel;
+use App\Libraries\CopainLegacyReader;
 
 /*
 ========================================================
@@ -38,9 +40,45 @@ class ImportFromCopain extends BaseController
     ========================================================
     */
 
+
     public function index()
     {
-        return view('import/copain');
+        $config = config('Copain');
+
+        $reader = new CopainLegacyReader();
+
+        $copains = $reader->getCompetitions(
+            $config->email,
+            $config->password
+        );
+        /*
+        //echo "<pre>";
+        //print_r($copains['competitions']);
+        //print_r($copains);
+        //exit;
+
+
+        echo "<pre>";
+        print_r($copains);
+        print_r($config->email);
+        print_r($config->password);
+
+        exit;
+*/
+        $model = new CompetitionModel();
+
+        $existing = $model->select('id')->findAll();
+
+        $existingIds =
+            array_column($existing, 'id');
+
+        return view(
+            'import/copain',
+            [
+                'copains' => $copains,
+                'existingIds' => $existingIds
+            ] + $this->data
+        );
     }
 
 
@@ -52,7 +90,10 @@ class ImportFromCopain extends BaseController
     */
 
     public function run()
+
     {
+        echo "RUN START";
+
         $ref =
             $this->request->getPost('ref');
 

@@ -65,46 +65,7 @@ class CompetitionStorage
     =========================
     */
 
-    public function registerCompetition(string $code)
-    {
-        $model = new CompetitionModel();
 
-        $parts = explode('_', $code);
-
-        if (count($parts) < 4) {
-            throw new \Exception("Format competition invalide");
-        }
-
-        $saison = $parts[0];
-        $urs    = $parts[1];
-        $type   = $parts[2];
-        $numero = $parts[3];
-
-        // ici id = numero concours
-
-        $existing = $model
-            ->where('id', $numero)
-            ->first();
-
-        if ($existing) {
-            return $existing['id'];
-        }
-
-        $data = [
-
-            'id' => $numero,
-            'numero' => $type,
-            'urs_id' => $urs,
-            'saison' => $saison,
-            'type' => $type,
-            'nom' => $code
-
-        ];
-
-        $model->insert($data);
-
-        return $numero;
-    }
 
 
     /*
@@ -122,5 +83,75 @@ class CompetitionStorage
             ->first();
 
         return $row['id'] ?? null;
+    }
+    public function registerCompetition(string $code)
+    {
+        $model = new CompetitionModel();
+
+        $parts = explode('_', $code);
+
+        if (count($parts) < 4) {
+            throw new \Exception("Format competition invalide");
+        }
+
+        $saison = (int)$parts[0];
+        $urs    = (int)$parts[1];
+        $type   = (int)$parts[2];
+        $numero = (int)$parts[3];
+
+
+        $existing = $model
+            ->where('id', $numero)
+            ->first();
+
+        if ($existing) {
+            return $existing['id'];
+        }
+
+
+        /*
+    ============================
+    VALEURS PAR DEFAUT MODE ZIP
+    ============================
+    */
+
+        $data = [
+
+            'id' => $numero,
+
+            'numero' => $type,
+
+            'urs_id' => $urs,
+
+            'saison' => $saison,
+
+            'type' => $type,
+
+            'nom' => $code,
+
+            'date_competition' => date('Y-m-d'),
+
+            'max_photos_club' => 999,
+            'max_photos_auteur' => 99,
+
+            'param_photos_club' => 0,
+            'param_photos_auteur' => 0,
+
+            'quota' => 0,
+
+            'note_min' => 6,
+            'note_max' => 20,
+
+            'nb_auteurs_ur_n2' => 3,
+            'nb_clubs_ur_n2' => 7,
+
+            'pte' => 0,
+            'nature' => 0
+
+        ];
+
+        $model->insert($data);
+
+        return $numero;
     }
 }

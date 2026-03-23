@@ -44,329 +44,340 @@ class CopainImporter
         return $data;
     }
 
-
     /*
     ============================
     IMPORT COMPLET
     ============================
     */
-
     public function importCompetition($ref, $type, $ordre)
     {
-
         $db = Database::connect();
 
-        $db->transStart();
+        try {
 
+            log_message('debug', "IMPORT START $ref");
 
-        /*
+            $db->transStart();
+
+            /*
         ============================
-        APPEL COPAIN
-        ============================
-        */
-
-        $response = $this->client->importCompetition(
-            $ref,
-            $type,
-            $ordre
-        );
-
-        if (!$response || $response['code'] != 0) {
-
-            $db->transRollback();
-
-            return [
-                'code' => 'IMPORT_ERROR',
-                'response' => $response
-            ];
-        }
-
-
-        /*
-        ============================
-        DELETE
+        API COPAIN
         ============================
         */
 
-        $cleaner = new CompetitionCleaner();
+            $response = $this->client->importCompetition(
+                $ref,
+                $type,
+                $ordre
+            );
 
-        $cleaner->deleteCompetition($ref);
+            if (!$response || ($response['code'] ?? 1) != 0) {
 
+                log_message('error', 'IMPORT API ERROR');
 
-        /*
+                $db->transRollback();
+
+                return [
+                    'code' => 'IMPORT_ERROR',
+                    'response' => $response
+                ];
+            }
+
+            log_message('debug', 'API OK -!!!!!');
+
+            /*
+        ============================
+        DELETE EXISTING
+        ============================
+        */
+
+            $exists = $db->table('competitions')
+                ->where('id', $ref)
+                ->countAllResults();
+
+            log_message(
+                'debug',
+                "CHECK EXISTS $ref = $exists"
+            );
+
+            if ($exists) {
+
+                log_message(
+                    'debug',
+                    "CALL CLEANER $ref"
+                );
+
+                $cleaner = new CompetitionCleaner();
+
+                $cleaner->deleteCompetition($ref);
+            }
+
+            /*
         ============================
         COMPETITION
         ============================
         */
 
-        $json_compet = $this->getJson(
-            $response['file_compet']
-        );
+            if (!empty($response['file_compet'])) {
 
-        $compet = json_decode($json_compet, true);
+                $json = $this->getJson(
+                    $response['file_compet']
+                );
+
+                $compet = json_decode($json, true);
+
+                if (is_array($compet)) {
+
+                    $data = [
+
+                        'id' => $compet['id'] ?? $ref,
+                        'numero' => $compet['numero'] ?? null,
+                        'type' => $compet['type'] ?? 1,
+                        'urs_id' => $compet['urs_id'] ?? null,
+                        'saison' => $compet['saison'] ?? null,
+                        'nom' => $compet['nom'] ?? '',
+                        'date_competition' =>
+                        $compet['date_competition'] ?? null,
+
+                        'max_photos_club' =>
+                        $compet['max_photos_club'] ?? 0,
+
+                        'max_photos_auteur' =>
+                        $compet['max_photos_auteur'] ?? 0,
+
+                        'param_photos_club' =>
+                        $compet['param_photos_club'] ?? 0,
+
+                        'param_photos_auteur' =>
+                        $compet['param_photos_auteur'] ?? 0,
+
+                        'quota' =>
+                        $compet['quota'] ?? 0,
+
+                        'note_min' =>
+                        $compet['note_min'] ?? 6,
+
+                        'note_max' =>
+                        $compet['note_max'] ?? 20,
+
+                        'nb_auteurs_ur_n2' =>
+                        $compet['nb_auteurs_ur_n2'] ?? 0,
+
+                        'nb_clubs_ur_n2' =>
+                        $compet['nb_clubs_ur_n2'] ?? 0,
+
+                        'pte' =>
+                        $compet['pte'] ?? 0,
+
+                        'nature' =>
+                        $compet['nature'] ?? 0,
+                    ];
+
+                    $db->table('competitions')->insert($data);
+                }
+            }
+
+            log_message('debug', 'COMPET OK');
 
 
-        $competitionData = [
-
-            'id' => $compet['id'],
-            'numero' => $compet['numero'],
-            'type' => $compet['type'],
-            'urs_id' => $compet['urs_id'] ?: null,
-            'saison' => $compet['saison'],
-            'nom' => $compet['nom'],
-            'date_competition' => $compet['date_competition'],
-
-            'max_photos_club' => $compet['max_photos_club'],
-            'max_photos_auteur' => $compet['max_photos_auteur'],
-            'param_photos_club' => $compet['param_photos_club'],
-            'param_photos_auteur' => $compet['param_photos_auteur'],
-            'quota' => $compet['quota'],
-            'note_min' => $compet['note_min'],
-            'note_max' => $compet['note_max'],
-            'nb_auteurs_ur_n2' => $compet['nb_auteurs_ur_n2'],
-            'nb_clubs_ur_n2' => $compet['nb_clubs_ur_n2'],
-
-            'nature' => $compet['nature']
-
-        ];
-
-        $db->table('competitions')->insert(
-            $competitionData
-        );
-
-
-        /*
+            /*
         ============================
         JUGES
         ============================
         */
 
-        $json_juges = $this->getJson(
-            $response['file_juge']
-        );
+            if (!empty($response['file_juge'])) {
 
-        $juges = json_decode(
-            $json_juges,
-            true
-        );
+                $json = $this->getJson(
+                    $response['file_juge']
+                );
 
-        foreach ($juges as $j) {
+                $rows = json_decode($json, true);
 
-            $db->table('juges')->insert([
+                if (is_array($rows)) {
 
-                'id' => $j['id'],
-                'nom' => $j['nom'],
-                'competitions_id' => $ref
+                    foreach ($rows as $j) {
 
-            ]);
-        }
+                        try {
+
+                            $db->table('juges')->insert([
+
+                                'id' => $j['id'],
+                                'nom' => $j['nom'],
+                                'competitions_id' => $ref
+
+                            ]);
+                        } catch (\Throwable $e) {
+                        }
+                    }
+                }
+            }
+
+            log_message('debug', 'JUGES OK');
 
 
-        /*
+            /*
         ============================
         PHOTOS
         ============================
         */
 
-        $json_photos = $this->getJson(
-            $response['file_photos']
-        );
+            if (!empty($response['file_photos'])) {
 
-        $photos = json_decode(
-            $json_photos,
-            true
-        );
+                $json = $this->getJson(
+                    $response['file_photos']
+                );
 
-        foreach ($photos as $p) {
+                $rows = json_decode($json, true);
 
-            $db->table('photos')->insert([
+                if (is_array($rows)) {
 
-                'id' => $p['id'],
-                'ean' => $p['ean'],
-                'competitions_id' => $ref,
-                'participants_id' =>
-                str_replace('-', '', $p['participants_id']),
-                'titre' =>
-                html_entity_decode($p['titre']),
-                'statut' => $p['statut'],
-                'saisie' => $p['saisie'],
-                'passage' => $p['passage'],
-                'disqualifie' => $p['disqualifie']
+                    foreach ($rows as $p) {
 
-            ]);
-        }
+                        try {
+
+                            $db->table('photos')->insert([
+
+                                'id' => $p['id'],
+                                'ean' => $p['ean'],
+                                'competitions_id' => $ref,
+
+                                'participants_id' =>
+                                str_replace('-', '', $p['participants_id']),
+
+                                'titre' =>
+                                html_entity_decode($p['titre']),
+
+                                'statut' =>
+                                $p['statut'] ?? 0,
+
+                                'saisie' =>
+                                $p['saisie'] ?? 0,
+
+                                'passage' =>
+                                $p['passage'] ?? 0,
+
+                                'disqualifie' =>
+                                $p['disqualifie'] ?? 0,
+                            ]);
+                        } catch (\Throwable $e) {
+                        }
+                    }
+                }
+            }
+
+            log_message('debug', 'PHOTOS OK');
 
 
-        /*
+            /*
         ============================
         NOTES
         ============================
         */
 
-        $json_notes = $this->getJson(
-            $response['file_note']
-        );
+            if (!empty($response['file_note'])) {
 
-        $notes = json_decode(
-            $json_notes,
-            true
-        );
+                $json = $this->getJson(
+                    $response['file_note']
+                );
 
-        foreach ($notes as $n) {
+                $rows = json_decode($json, true);
 
-            $db->table('notes')->insert([
+                if (is_array($rows)) {
 
-                'juges_id' => $n['juges_id'],
-                'photos_id' => $n['photos_id'],
-                'note' => $n['note'],
-                'competitions_id' => $ref
+                    foreach ($rows as $n) {
 
-            ]);
-        }
+                        try {
+
+                            $db->table('notes')->insert([
+
+                                'juges_id' =>
+                                $n['juges_id'],
+
+                                'photos_id' =>
+                                $n['photos_id'],
+
+                                'note' =>
+                                $n['note'],
+
+                                'competitions_id' =>
+                                $ref
+
+                            ]);
+                        } catch (\Throwable $e) {
+                        }
+                    }
+                }
+            }
+
+            log_message('debug', 'NOTES OK');
 
 
-        /*
+            /*
         ============================
         MEDAILLES
         ============================
         */
 
-        $json_medailles = $this->getJson(
-            $response['file_medaille']
-        );
+            if (!empty($response['file_medaille'])) {
 
-        $medailles = json_decode(
-            $json_medailles,
-            true
-        );
-
-        if ($medailles) {
-
-            foreach ($medailles as $m) {
-
-                $db->table('medailles')->insert([
-
-                    'id' => $m['id'],
-                    'nom' => $m['nom'],
-                    'fpf' => $m['fpf'],
-                    'competitions_id' => $ref
-
-                ]);
-            }
-        }
-
-
-        /*
-        ============================
-        DOSSIER CI4
-        ============================
-        */
-
-        $folder =
-            $compet['saison'] . '_' .
-            ($compet['urs_id'] ?? 0) . '_' .
-            $compet['numero'] . '_' .
-            $compet['id'];
-
-        $baseDir =
-            FCPATH .
-            'uploads/competitions/' .
-            $folder;
-
-
-        if (!is_dir($baseDir)) {
-
-            mkdir($baseDir, 0777, true);
-
-            mkdir($baseDir . '/csv', 0777, true);
-            mkdir($baseDir . '/etiquettes', 0777, true);
-            mkdir($baseDir . '/pdf', 0777, true);
-            mkdir($baseDir . '/photos', 0777, true);
-            mkdir($baseDir . '/pte', 0777, true);
-            mkdir($baseDir . '/thumbs', 0777, true);
-        }
-
-
-        /*
-        ============================
-        ZIP PHOTOS
-        ============================
-        */
-
-        $zipResponse =
-            $this->client->generateZip(
-                $ref,
-                $type
-            );
-
-
-        if ($zipResponse && $zipResponse['code'] == 0) {
-
-            $urlZip =
-                $zipResponse['zip_photos'];
-
-            $tmpZip =
-                WRITEPATH .
-                'zip_' .
-                $ref .
-                '.zip';
-
-
-            /*
-            DOWNLOAD
-            */
-
-            $data =
-                file_get_contents($urlZip);
-
-            if ($data === false) {
-
-                $db->transRollback();
-
-                return [
-                    'code' =>
-                    'ZIP_DOWNLOAD_ERROR'
-                ];
-            }
-
-
-            file_put_contents(
-                $tmpZip,
-                $data
-            );
-
-
-            /*
-            UNZIP
-            */
-
-            $zip =
-                new \ZipArchive();
-
-            if ($zip->open($tmpZip) === true) {
-
-                $zip->extractTo(
-                    $baseDir
+                $json = $this->getJson(
+                    $response['file_medaille']
                 );
 
-                $zip->close();
-            } else {
+                $rows = json_decode($json, true);
 
-                $db->transRollback();
+                if (is_array($rows)) {
 
-                return [
-                    'code' =>
-                    'ZIP_OPEN_ERROR'
-                ];
+                    foreach ($rows as $m) {
+
+                        $exists = $db->table('medailles')
+                            ->where('id', $m['id'])
+                            ->countAllResults();
+
+                        if (!$exists) {
+
+                            $db->table('medailles')->insert([
+
+                                'id' => $m['id'],
+                                'nom' => $m['nom'],
+                                'fpf' => $m['fpf'],
+                                'competitions_id' => $ref
+                            ]);
+                        }
+                    }
+                }
             }
 
+            log_message('debug', 'MEDAILLES OK');
+            /*
+============================
+ZIP DESACTIVE (SAFE)
+============================
+*/
 
-            unlink($tmpZip);
+            log_message(
+                'debug',
+                'ZIP SKIPPED'
+            );
+
+            $db->transComplete();
+
+            log_message('debug', 'IMPORT END');
+
+            return ['code' => 0];
+        } catch (\Throwable $e) {
+
+            log_message(
+                'error',
+                'IMPORT EXCEPTION ' .
+                    $e->getMessage()
+            );
+
+            return [
+                'code' => 'EXCEPTION',
+                'msg' => $e->getMessage()
+            ];
         }
-
-
-        $db->transComplete();
-
-        return ['code' => 0];
     }
 }
