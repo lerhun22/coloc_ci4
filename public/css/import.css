@@ -1,0 +1,78 @@
+/* =========================
+   CARDS IMPORT
+========================= */
+
+.cards-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.card-import {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 280px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.card-import:hover {
+  transform: translateY(-3px);
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.card-info {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+/* =========================
+   PROGRESS BAR
+========================= */
+
+.progress-box {
+  height: 8px;
+  background: #eee;
+  border-radius: 5px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 8px;
+  width: 0%;
+  background: #28a745;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #555;
+}
+
+/* =========================
+   BUTTON
+========================= */
+
+.btn-import {
+  margin-top: 10px;
+  padding: 6px 10px;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-import:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
