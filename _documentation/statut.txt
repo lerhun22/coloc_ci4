@@ -1,7 +1,0 @@
-http://localhost:8888/coloc_v3/import
-
-
-test import.php
-
-pb longeur ean.jpg
-

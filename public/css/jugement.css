@@ -6,11 +6,9 @@
   display: flex;
   flex-direction: column;
 
-  height: calc(100vh - 110px);
+  height: calc(100vh - 120px);
 
   gap: 10px;
-
-  padding: 8px 10px;
 }
 
 /* =====================================================
@@ -18,105 +16,122 @@
 ===================================================== */
 
 .jugement-filters {
-  display: flex;
-  flex-wrap: wrap; /* autorise 2 lignes */
-
-  align-items: center;
-
-  gap: 8px 24px;
-
-  padding: 10px 18px;
-
-  background: #3b5391;
-  color: white;
-
-  border-radius: 4px;
+  flex: 0 0 auto;
 }
 
-.jugement-filters input {
-  padding: 4px 6px;
+.filters-top {
+  display: flex;
+  justify-content: space-between;
+}
+
+.filters-left {
+  display: flex;
+  gap: 20px;
+}
+
+.filters-state {
+  display: flex;
+  gap: 15px;
+}
+
+.filters-right {
+  font-weight: bold;
 }
 
 /* =====================================================
-   GRILLE VIGNETTES
+   GRILLE
 ===================================================== */
 
 .jugement-grid {
-  display: grid;
+  flex: 0 0 auto;
 
-  grid-template-columns: repeat(auto-fill, 34px);
+  display: flex;
+  flex-wrap: wrap;
 
-  gap: 7px;
+  gap: 4px;
 
-  padding: 10px 12px;
-
-  background: #e6e6e6;
-
-  height: 100px;
+  max-height: 150px;
 
   overflow-y: auto;
 
-  border-radius: 4px;
+  padding: 4px;
+
+  border: 1px solid #ccc;
+
+  background: #f8f8f8;
 }
 
-/* vignette */
+/* =====================================================
+   VIGNETTES
+===================================================== */
 
 .photo-tile {
-  width: 34px;
+  width: 44px;
   height: 34px;
-
-  font-size: 12px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  background: #ccc;
+  font-size: 12px;
 
-  border-radius: 3px;
+  border: 1px solid #bbb;
 
   cursor: pointer;
+
+  background: #e5e7eb;
+
+  transition: 0.1s;
 }
 
-/* états */
+/* pas jugée */
 
 .photo-tile.pending {
-  background: #ccc;
+  background: #e5e7eb;
 }
+
+/* partielle */
 
 .photo-tile.partial {
-  background: orange;
-}
-
-.photo-tile.done {
-  background: green;
+  background: #f59e0b;
   color: white;
 }
 
-.photo-tile.disq {
-  background: #000;
-  color: #fff;
+/* jugée */
+
+.photo-tile.done {
+  background: #16a34a;
+  color: white;
 }
 
+/* active */
+
 .photo-tile.active {
-  outline: 2px solid #2d4ea2;
+  outline: 3px solid #2563eb;
+
+  z-index: 2;
+}
+
+/* disqualifiée */
+
+.photo-tile.disq {
+  background: #dc2626;
+
+  color: white;
 }
 
 /* =====================================================
-   ZONE PRINCIPALE
+   MAIN
 ===================================================== */
 
 .jugement-main {
   flex: 1;
+
+  display: flex;
+
+  gap: 10px;
+
   min-height: 0;
-
-  display: grid;
-
-  grid-template-columns: 1fr 340px 280px;
-
-  gap: 18px;
-
-  padding: 10px;
 }
 
 /* =====================================================
@@ -124,12 +139,13 @@
 ===================================================== */
 
 .jugement-photo {
-  width: 100%;
-  height: 100%;
+  flex: 1;
 
   display: flex;
   align-items: center;
   justify-content: center;
+
+  background: #cfcfcf;
 
   overflow: hidden;
 }
@@ -138,307 +154,101 @@
   max-width: 100%;
   max-height: 100%;
 
-  width: auto;
-  height: auto;
-
   object-fit: contain;
+
+  background: white;
 }
 
 /* =====================================================
-   PANELS
+   NOTES
 ===================================================== */
 
-.jugement-notes,
-.jugement-infos {
+.jugement-notes {
+  flex: 0 0 220px;
+
   background: #f5f5f5;
 
-  padding: 18px;
-
-  border-radius: 6px;
+  padding: 10px;
 
   overflow-y: auto;
 }
 
-.jugement-notes h3,
-.jugement-infos h3 {
-  margin-top: 0;
+.note-input {
+  width: 80px;
+
+  font-size: 16px;
+}
+
+/* note valide */
+
+.note-input.ok {
+  background: #d1fae5;
 }
 
 /* =====================================================
-   NOTES INPUTS
+   INFOS
 ===================================================== */
 
-.jugement-notes input[type="number"] {
-  width: 70px;
+.jugement-infos {
+  flex: 0 0 260px;
 
-  margin-bottom: 10px;
+  background: #fafafa;
 
-  padding: 4px;
+  padding: 10px;
+
+  overflow-y: auto;
 }
-
-#total {
-  font-weight: bold;
-}
-
-/* =====================================================
-   DISQUALIFY
-===================================================== */
-
-.disqualify-box {
-  margin-top: 20px;
-}
-
-.btn-disqualify {
-  width: 100%;
-
-  padding: 14px;
-
-  font-size: 18px;
-  font-weight: bold;
-
-  border: none;
-  border-radius: 6px;
-
-  cursor: pointer;
-
-  background: #2e7d32;
-  color: white;
-}
-
-.btn-disqualify.disq {
-  background: #c62828;
-}
-
-/* =====================================================
-   PATH
-===================================================== */
 
 .photo-path {
   font-size: 12px;
-  color: #666;
-
   word-break: break-all;
 }
 
 /* =====================================================
-   SCROLLBAR
+   STATS
 ===================================================== */
 
-.jugement-grid::-webkit-scrollbar,
-.jugement-notes::-webkit-scrollbar,
-.jugement-infos::-webkit-scrollbar {
-  width: 6px;
+.jugement-stats {
+  display: flex;
+  gap: 10px;
+
+  margin-top: 10px;
 }
 
-.jugement-grid::-webkit-scrollbar-thumb,
-.jugement-notes::-webkit-scrollbar-thumb,
-.jugement-infos::-webkit-scrollbar-thumb {
-  background: #bbb;
-  border-radius: 3px;
+.stat {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.stat-label {
+  font-size: 12px;
+}
+
+.stat-total {
+  font-size: 18px;
+  font-weight: bold;
 }
 
 /* =====================================================
-   ZOOM
+   DISQUALIFY BUTTON
 ===================================================== */
 
-.zoom-overlay {
-  position: fixed;
-  inset: 0;
+.btn-disqualify {
+  background: #c62828;
 
-  background: rgba(0, 0, 0, 0.95);
-
-  display: none;
-
-  align-items: center;
-  justify-content: center;
-
-  z-index: 999999;
-
-  pointer-events: none;
-}
-
-.zoom-overlay.active {
-  display: flex;
-
-  pointer-events: auto;
-}
-
-.zoom-overlay img {
-  max-width: 95vw;
-  max-height: 95vh;
-
-  object-fit: contain;
-}
-
-.photo-tile.active {
-  border: 3px solid orange;
-}
-
-#jugement-progress {
-  margin: 10px 0;
-}
-
-#progress-bar {
-  width: 100%;
-  height: 8px;
-  background: #ddd;
-}
-
-#progress-bar-inner {
-  height: 8px;
-  width: 0%;
-  background: #4caf50;
-}
-
-.jugement-progress {
-  display: flex;
-  align-items: center;
-
-  background: #445a92;
   color: white;
 
-  padding: 8px 12px;
-  border-radius: 8px;
+  border: none;
+
+  padding: 6px 10px;
+
+  cursor: pointer;
 }
 
-.progress-title {
-  font-weight: bold;
-  font-size: 18px;
-}
-
-.progress-position {
-  margin-top: 4px;
-}
-
-.progress-counts {
-  margin-top: 6px;
-  font-weight: bold;
-}
-
-#count-done {
-  color: green;
-}
-
-#count-partial {
-  color: orange;
-}
-
-#count-pending {
-  color: red;
-}
-
-.jugement-stats {
-  margin-top: 15px;
-  display: flex;
-  gap: 20px;
-  align-items: flex-end;
-}
-
-.stat {
-  text-align: center;
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.stat-label {
-  font-size: 13px;
-  opacity: 0.7;
-}
-
-.stat-total {
-  font-size: 18px;
-  margin-left: 10px;
-}
-
-#progress-bar {
-  width: 100%;
-  height: 8px;
-  background: #ddd;
-}
-
-#progress-bar-inner {
-  height: 8px;
-  width: 0%;
-  background: #4caf50;
-}
-/* =====================
-   STATS JUGEMENT
-===================== */
-
-.jugement-stats {
-  margin-top: 8px;
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  flex-wrap: nowrap;
-  font-size: 13px;
-}
-
-.stat {
-  text-align: center;
-  min-width: 40px;
-}
-
-.stat-value {
-  font-size: 20px; /* avant 28 */
-  font-weight: bold;
-  line-height: 1.1;
-}
-
-.stat-label {
-  font-size: 11px;
-  opacity: 0.7;
-}
-
-.stat-total {
-  font-size: 14px;
-  margin-left: 4px;
-}
-
-/* couleurs */
-
-#count-done {
-  color: #2e7d32;
-}
-
-#count-partial {
-  color: #f9a825;
-}
-
-#count-pending {
-  color: #c62828;
-}
-
-.filters-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  margin-bottom: 6px;
-}
-.filters-left {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.filters-right {
-  margin-left: auto;
-
-  font-size: 22px;
-}
-
-.competition-name {
-  font-weight: bold;
-  font-size: 18px;
-
-  margin-bottom: 6px;
-}
-
-.filters-state {
-  display: flex;
-  gap: 12px;
+.btn-disqualify.disq {
+  background: black;
 }

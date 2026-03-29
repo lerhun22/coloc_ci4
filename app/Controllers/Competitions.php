@@ -227,4 +227,17 @@ class Competitions extends BaseController
 
         return redirect()->back();
     }
+    public function delete($id)
+    {
+        $id = (int)$id;
+
+        $cleaner =
+            new \App\Libraries\CompetitionCleaner();
+
+        $cleaner->deleteCompetition($id);
+
+        return redirect()->to(
+            base_url('competitions')
+        );
+    }
 }

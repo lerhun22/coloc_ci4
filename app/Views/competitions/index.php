@@ -49,63 +49,71 @@
             <!-- LISTE DES COMPETITIONS -->
             <!-- ========================================= -->
 
-            <?php foreach ($competitions as $competition): ?>
+            <?php foreach ($competitions_list as $competition): ?>
 
-            <div class="competition-card"
-                onclick="window.location='<?= site_url('competitions/' . $competition['id']) ?>'">
+                <div class="competition-card"
+                    onclick="window.location='<?= base_url('competitions/' . $competition['id']) ?>'">
 
+                    <!-- ACTIONS -->
 
-                <!-- ACTIONS -->
+                    <div class="competition-actions" onclick="event.stopPropagation();">
 
-                <div class="competition-actions" onclick="event.stopPropagation();">
+                        <a href="<?= base_url('competitions/delete/' . $competition['id']) ?>" class="btn-action btn-danger"
+                            onclick="return confirm('Supprimer la compétition ?\nFichiers + base supprimés')">
 
-                    <a href="<?= site_url('competitions/' . $competition['id']) ?>" class="btn-action">
-                        ▶
-                    </a>
+                            SUPP
 
-                    <a href="<?= site_url('competitions/refresh/' . $competition['id']) ?>" class="btn-action">
-                        REFRESH
-                    </a>
+                        </a>
 
-                    <a href="<?= site_url('competitions/delete/' . $competition['id']) ?>" class="btn-action btn-danger"
-                        onclick="return confirm('Supprimer ?')">
-                        SUPP
-                    </a>
-
-                </div>
-
-
-                <!-- NOM -->
-
-                <div class="competition-left">
-
-                    <div class="competition-title">
-                        <?= esc($competition['nom']) ?>
                     </div>
 
-                    <div class="competition-date">
-                        <?= esc($competition['date_competition']) ?>
+
+                    <!-- NOM -->
+
+                    <div class="competition-left">
+
+                        <div class="competition-title">
+                            <?= esc($competition['nom']) ?>
+                        </div>
+
+                        <div class="competition-date">
+
+                            <?php if (!empty($competition['urs_id'])): ?>
+
+                                UR<?= esc($competition['urs_id']) ?> — Régional
+
+                            <?php else: ?>
+
+                                National
+
+                            <?php endif; ?>
+
+                            •
+
+                            <?= esc($competition['date_competition']) ?>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- STATS -->
+
+                    <div class="competition-right">
+
+                        <?= $competition['photo_count'] ?? 0 ?> photos •
+
+                        <?= $competition['author_count'] ?? 0 ?> auteurs •
+
+                        <?= $competition['club_count'] ?? 0 ?> clubs •
+
+                        Ø <?= $competition['avg_photos_per_author'] ?? 0 ?> / auteur •
+
+                        Ø <?= $competition['avg_photos_per_club'] ?? 0 ?> / club
+
                     </div>
 
                 </div>
-
-
-                <!-- STATS -->
-
-                <div class="competition-right">
-
-                    <?= $competition['photo_count'] ?? 0 ?> photos •
-                    <?= $competition['author_count'] ?? 0 ?> auteurs •
-
-                    <?= $competition['club_count'] ?? 0 ?> clubs •
-
-                    Ø <?= $competition['avg_photos_per_author'] ?? 0 ?> / auteur •
-
-                    Ø <?= $competition['avg_photos_per_club'] ?? 0 ?> / club
-
-                </div>
-
-            </div>
 
             <?php endforeach; ?>
 

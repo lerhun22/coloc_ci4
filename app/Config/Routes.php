@@ -6,24 +6,42 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 
-$routes->get('/', 'Dashboard::index');
+/*
+|--------------------------------------------------------------------------
+DASHBOARD
+|--------------------------------------------------------------------------
+*/
 
+$routes->get('/', 'Dashboard::index');
 $routes->get('dashboard', 'Dashboard::index');
 
-
+$routes->get('test/copain/(:num)', 'ImportTest::copain/$1');
 /*
 |--------------------------------------------------------------------------
 COMPETITIONS
 |--------------------------------------------------------------------------
 */
 
-$routes->get('competitions', 'Competitions::index');
+$routes->get(
+    'competitions',
+    'Competitions::index'
+);
 
+
+/*
+IMPORTANT
+import doit être AVANT competitions/(:num)
+*/
 
 $routes->get(
-    'competitions/photos',
-    'Competitions::photos'
+    'competitions/import',
+    'ImportFromCopain::index'
+);
 
+$routes->match(
+    ['GET', 'POST'],
+    'competitions/import/run',
+    'ImportFromCopain::run'
 );
 
 $routes->get(
@@ -37,71 +55,95 @@ $routes->get(
 );
 
 $routes->get(
-    'notation',
-    'Competitions::notation'
+    'competitions/delete/(:num)',
+    'Competitions::delete/$1'
 );
 
 
+
+/*
+|--------------------------------------------------------------------------
+IMPORT SAFE (async)
+|--------------------------------------------------------------------------
+*/
+
+$routes->get('import/start/(:num)', 'ImportFromCopain::start/$1');
+$routes->get('import/progress/(:num)', 'ImportFromCopain::progress/$1');
+$routes->get('import/step/(:num)', 'ImportFromCopain::step/$1');
+
+
+/*
+|--------------------------------------------------------------------------
+IMPORT COPAINS ancien workflow
+|--------------------------------------------------------------------------
+*/
+
+$routes->match(
+    ['GET', 'POST'],
+    'competitions/import/run',
+    'ImportFromCopain::run'
+);
+
+$routes->match(
+    ['GET', 'POST'],
+    'import/copain/run',
+    'ImportFromCopain::run'
+);
+
+
+/*
+|--------------------------------------------------------------------------
+IMPORT ZIP LOCAL
+|--------------------------------------------------------------------------
+*/
+
+$routes->get('import', 'Import::index');
+$routes->get('import/run/(:any)', 'Import::run/$1');
 /*
 |--------------------------------------------------------------------------
 JUGEMENT
 |--------------------------------------------------------------------------
 */
 
-$routes->get('jugement', 'Jugement::index');
+$routes->get(
+    'jugement',
+    'Jugement::index'
+);
 
-$routes->get('juges', 'Juges::index');
+$routes->get(
+    'competitions/(:num)/jugement/photo/(:num)',
+    'Jugement::photo/$1/$2'
+);
 
-$routes->get('export', 'Export::index');
+$routes->post(
+    'competitions/(:num)/jugement/saveNote',
+    'Jugement::saveNote/$1'
+);
+
+$routes->get(
+    'competitions/(:num)/jugement/disqualify/(:num)',
+    'Jugement::disqualify/$1/$2'
+);
+
+$routes->get(
+    'juges',
+    'Juges::index'
+);
+
 
 
 /*
 |--------------------------------------------------------------------------
-IMPORT
+EXPORT
 |--------------------------------------------------------------------------
 */
 
-// ZIP LOCAL
-
-$routes->get('import', 'Import::index');
-
 $routes->get(
-    'import/run/(:any)',
-    'Import::run/$1'
+    'export',
+    'Export::index'
 );
 
 
-// COPAINS
-
-$routes->get(
-    'import/copain',
-    'ImportFromCopain::index'
-);
-
-$routes->post(
-    'import/copain/run',
-    'ImportFromCopain::run'
-);
-
-$routes->post(
-    'competitions/import/run',
-    'ImportFromCopain::run'
-);
-
-$routes->get(
-    'competitions/import',
-    'ImportFromCopain::index'
-);
-
-$routes->post(
-    'competitions/import/run',
-    'ImportFromCopain::run'
-);
-
-
-$routes->get('test/run', function () {
-    echo "TEST OK";
-});
 
 /*
 |--------------------------------------------------------------------------
@@ -109,15 +151,46 @@ SUIVI
 |--------------------------------------------------------------------------
 */
 
-$routes->get('suivi', 'Suivi::index');
-$routes->get('suivi/create', 'Suivi::create');
-$routes->get('suivi/edit/(:num)', 'Suivi::edit/$1');
-$routes->post('suivi/save', 'Suivi::save');
+$routes->get(
+    'suivi',
+    'Suivi::index'
+);
+
+$routes->get(
+    'suivi/create',
+    'Suivi::create'
+);
+
+$routes->get(
+    'suivi/edit/(:num)',
+    'Suivi::edit/$1'
+);
+
+$routes->post(
+    'suivi/save',
+    'Suivi::save'
+);
+
 
 
 /*
 |--------------------------------------------------------------------------
-AUTOROUTE
+TEST
+|--------------------------------------------------------------------------
+*/
+
+$routes->get(
+    'test/run',
+    function () {
+        echo "TEST OK";
+    }
+);
+
+
+
+/*
+|--------------------------------------------------------------------------
+AUTOROUTE OFF
 |--------------------------------------------------------------------------
 */
 

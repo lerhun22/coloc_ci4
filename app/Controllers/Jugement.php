@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\PhotoModel;
 use App\Models\JugementModel;
 use App\Models\CompetitionModel;
+use App\Libraries\CompetitionService;
 
 class Jugement extends BaseController
 {
@@ -27,21 +28,22 @@ class Jugement extends BaseController
        PAGE PRINCIPALE
     ===================================================== */
 
-    public function index($competition_id)
+    public function index()
     {
 
         /*
         =====================
-        COMPETITION
+        COMPETITION ACTIVE
         =====================
         */
-        session()->set('competition_id', $competition_id);
 
-        $competition = $this->competitionModel->find($competition_id);
+        $competition = CompetitionService::getActive();
 
         if (!$competition) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
+
+        $competition_id = $competition['id'];
 
 
         /*
@@ -121,7 +123,10 @@ class Jugement extends BaseController
         */
 
         $photo = $photos[0];
-        $photo['auteur'] = $photo['prenom'] . ' ' . $photo['nom'];
+
+        $photo['auteur'] =
+            ($photo['prenom'] ?? '') . ' ' .
+            ($photo['nom'] ?? '');
 
         $position = 1;
         $total = count($photos);
@@ -147,17 +152,14 @@ class Jugement extends BaseController
 
         return view('jugement/index', [
 
-            'page' => 'page',
-
             'competition' => $competition,
+            'competition_id' => $competition_id,
 
             'photos' => $photos,
             'photo' => $photo,
 
             'juges' => $juges,
             'nb_juges' => $nb_juges,
-
-            'competition_id' => $competition_id,
 
             'competitionFolder' => $competitionFolder,
             'photosPath' => $photosPath,
@@ -174,71 +176,50 @@ class Jugement extends BaseController
        PHOTO + NOTES
     ===================================================== */
 
-    public function photo($competition_id, $photo_id)
+    public function photo($competition_id = null, $photo_id = null)
     {
-        try {
 
-            $builder = $this->db->table('photos');
-
-            $builder->select('
-                photos.*,
-                participants.id as participant_id,
-                clubs.nom as club
-            ');
-
-            $builder->join(
-                'participants',
-                'participants.id = photos.participants_id',
-                'left'
-            );
-
-            $builder->join(
-                'clubs',
-                'clubs.id = participants.clubs_id',
-                'left'
-            );
-
-            $builder->where('photos.id', $photo_id);
-
-            $photo = $builder->get()->getRowArray();
-
-
-            $notes = $this->jugementModel->getNotes(
-                $photo_id,
-                $competition_id
-            );
-
-            return $this->response->setJSON([
-                'photo' => $photo,
-                'notes' => $notes
-            ]);
-        } catch (\Throwable $e) {
-
-            return $this->response->setJSON([
-                'error' => $e->getMessage()
-            ]);
+        if (!$competition_id || !$photo_id) {
+            return $this->response->setStatusCode(404);
         }
-    }
 
+        $builder = $this->db->table('photos');
 
+        $builder->select('
+        photos.*,
+        participants.id as participant_id,
+        clubs.nom as club
+    ');
 
-    /* =====================================================
-       LISTE PHOTOS (passages)
-    ===================================================== */
+        $builder->join(
+            'participants',
+            'participants.id = photos.participants_id',
+            'left'
+        );
 
-    public function photos($competition_id)
-    {
-        $photos = $this->photoModel
+        $builder->join(
+            'clubs',
+            'clubs.id = participants.clubs_id',
+            'left'
+        );
 
-            ->select('id, passage')
+        $builder->where('photos.id', $photo_id);
 
-            ->where('competition_id', $competition_id)
+        $photo = $builder->get()->getRowArray();
 
-            ->orderBy('passage', 'ASC')
+        if (!$photo) {
+            return $this->response->setStatusCode(404);
+        }
 
-            ->findAll();
+        $notes = $this->jugementModel->getNotes(
+            $photo_id,
+            $competition_id
+        );
 
-        return $this->response->setJSON($photos);
+        return $this->response->setJSON([
+            'photo' => $photo,
+            'notes' => $notes
+        ]);
     }
 
 
@@ -247,20 +228,13 @@ class Jugement extends BaseController
        SAVE NOTE
     ===================================================== */
 
-    public function saveNote()
+    public function saveNote($competition_id = null)
     {
 
         $photo_id = $this->request->getPost('photo_id');
         $juge_id = $this->request->getPost('juge');
         $note = $this->request->getPost('note');
-        $competition_id = $this->request->getPost('competition_id');
 
-
-        /*
-        =====================
-        INSERT / UPDATE NOTE
-        =====================
-        */
 
         $exists = $this->db->table('notes')
 
@@ -299,12 +273,6 @@ class Jugement extends BaseController
         }
 
 
-        /*
-        =====================
-        TOTAL PHOTO
-        =====================
-        */
-
         $total = $this->db->table('notes')
 
             ->selectSum('note')
@@ -329,107 +297,42 @@ class Jugement extends BaseController
             ]);
 
 
-        /*
-        =====================
-        STATE
-        =====================
-        */
-
-        $nb_notes = $this->db->table('notes')
-
-            ->where('photos_id', $photo_id)
-
-            ->where('competitions_id', $competition_id)
-
-            ->countAllResults();
-
-
-        $nb_juges = $this->db->table('juges')
-
-            ->where('competitions_id', $competition_id)
-
-            ->countAllResults();
-
-
-        if ($nb_notes == 0) {
-            $state = 'pending';
-        } elseif ($nb_notes < $nb_juges) {
-            $state = 'partial';
-        } else {
-            $state = 'done';
-        }
-
-
         return $this->response->setJSON([
             'ok' => true,
-            'total' => $total,
-            'state' => $state
+            'total' => $total
         ]);
     }
 
-
-
     /* =====================================================
-       DISQUALIFY
-    ===================================================== */
+   DISQUALIFY
+===================================================== */
 
-    public function disqualify($competition_id, $photo_id)
+    public function disqualify($competition_id = null, $photo_id = null)
     {
+        if (!$photo_id) {
+            return $this->response->setStatusCode(404);
+        }
 
         $photo = $this->db->table('photos')
-
             ->where('id', $photo_id)
-
             ->get()
-
             ->getRowArray();
 
+        if (!$photo) {
+            return $this->response->setStatusCode(404);
+        }
 
-        $new = $photo['disqualifie'] ? 0 : 1;
-
+        $new = ($photo['disqualifie'] ?? 0) ? 0 : 1;
 
         $this->db->table('photos')
-
             ->where('id', $photo_id)
-
             ->update([
                 'disqualifie' => $new
             ]);
 
-
-        /*
-        STATE
-        */
-
-        $nb_notes = $this->db->table('notes')
-
-            ->where('photos_id', $photo_id)
-
-            ->where('competitions_id', $competition_id)
-
-            ->countAllResults();
-
-
-        $nb_juges = $this->db->table('juges')
-
-            ->where('competitions_id', $competition_id)
-
-            ->countAllResults();
-
-
-        if ($nb_notes == 0) {
-            $state = 'pending';
-        } elseif ($nb_notes < $nb_juges) {
-            $state = 'partial';
-        } else {
-            $state = 'done';
-        }
-
-
         return $this->response->setJSON([
             'ok' => true,
-            'disqualified' => $new,
-            'state' => $state
+            'state' => $new ? 'disq' : 'pending'
         ]);
     }
 }

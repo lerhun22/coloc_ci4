@@ -68,9 +68,10 @@ class Home extends BaseController
 
 
     public function testImport()
+
     {
-        $email = "c1.rougerie@wanadoo.fr";
-        $password = "Cloclo22700";
+        $email = "xx";
+        $password = "xx";
 
         /*
     ====================

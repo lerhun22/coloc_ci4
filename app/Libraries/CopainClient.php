@@ -9,6 +9,7 @@ class CopainClient
     private string $url_check_user;
     private string $url_import;
     private string $url_generate_zip;
+    private string $url_liste;
 
 
     public function __construct()
@@ -18,38 +19,26 @@ class CopainClient
         $this->url_check_user   = $config->url_check_user;
         $this->url_import       = $config->url_import_compet;
         $this->url_generate_zip = $config->url_generate_zip;
+        $this->url_liste        = $config->url_liste_competitions;
 
-        $this->cookie = WRITEPATH . 'copain_cookie.txt';
+        $this->cookie =
+            WRITEPATH .
+            'copain_cookie.txt';
+
         if (!file_exists($this->cookie)) {
-            file_put_contents($this->cookie, '');
+            file_put_contents(
+                $this->cookie,
+                ''
+            );
         }
-        // ⚠️ NE PAS supprimer le cookie ici
     }
 
 
     /*
-    ======================
+    ===================================
     LOGIN
-    ======================
+    ===================================
     */
-
-    public function autoLogin()
-    {
-        $config = config('Copain');
-
-        if (!$config->email || !$config->password) {
-
-            throw new \Exception(
-                "copain.email / password manquant dans .env"
-            );
-        }
-
-        return $this->login(
-            $config->email,
-            $config->password
-        );
-    }
-
 
     public function login($email, $password)
     {
@@ -70,13 +59,17 @@ class CopainClient
 
 
     /*
-    ======================
-    IMPORT
-    ======================
+    ===================================
+    IMPORT COMPETITION
+    ===================================
     */
 
-    public function importCompetition($ref, $type, $ordre)
-    {
+    public function importCompetition(
+        $ref,
+        $type,
+        $ordre
+    ) {
+
         $params = [
 
             'ref'   => $ref,
@@ -93,32 +86,265 @@ class CopainClient
 
 
     /*
-    ======================
+    ===================================
     GENERATE ZIP
-    ======================
+    ===================================
     */
 
-    public function generateZip($ref, $type)
+    public function generateZip(
+        $ref,
+        $type
+    ) {
+        $params = [
+
+            'ref'  => $ref,
+            'type' => $type,
+
+        ];
+
+        return $this->curlPost(
+            $this->url_generate_zip,
+            $params
+        );
+    }
+
+
+    /*
+    ===================================
+    DOWNLOAD FILE (ZIP)
+    stable gros fichiers
+    ===================================
+    */
+
+    public function downloadFile(
+        $url,
+        $dest
+    ) {
+        set_time_limit(0);
+
+        log_message(
+            'debug',
+            'DOWNLOAD URL = ' . $url
+        );
+
+        $dir = dirname($dest);
+
+        if (!is_dir($dir)) {
+            mkdir(
+                $dir,
+                0777,
+                true
+            );
+        }
+
+        $fp = fopen(
+            $dest,
+            'wb'
+        );
+
+        if (!$fp) {
+
+            log_message(
+                'error',
+                'FOPEN FAIL ' . $dest
+            );
+
+            return false;
+        }
+
+        $curl = curl_init($url);
+
+        curl_setopt_array($curl, [
+
+            CURLOPT_FILE => $fp,
+
+            CURLOPT_FOLLOWLOCATION => true,
+
+            CURLOPT_COOKIEJAR =>
+            $this->cookie,
+
+            CURLOPT_COOKIEFILE =>
+            $this->cookie,
+
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+
+            CURLOPT_TIMEOUT => 0,
+
+            CURLOPT_USERAGENT =>
+            "Mozilla/5.0",
+
+            CURLOPT_REFERER =>
+            "https://copain.federation-photo.fr/",
+
+        ]);
+
+        curl_exec($curl);
+
+        if (curl_errno($curl)) {
+
+            log_message(
+                'error',
+                curl_error($curl)
+            );
+
+            curl_close($curl);
+            fclose($fp);
+
+            return false;
+        }
+
+        curl_close($curl);
+        fclose($fp);
+
+        clearstatcache(
+            true,
+            $dest
+        );
+
+        if (!file_exists($dest)) {
+
+            log_message(
+                'error',
+                'ZIP NOT FOUND'
+            );
+
+            return false;
+        }
+
+        $size =
+            filesize($dest);
+
+        log_message(
+            'debug',
+            'ZIP SIZE = ' . $size
+        );
+
+        if ($size < 1000) {
+
+            log_message(
+                'error',
+                'ZIP TOO SMALL'
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    /*
+    ===================================
+    REMOTE SIZE
+    ===================================
+    */
+
+    public function getRemoteFileSize(
+        $url
+    ) {
+        $curl = curl_init($url);
+
+        curl_setopt_array($curl, [
+
+            CURLOPT_NOBODY => true,
+
+            CURLOPT_COOKIEJAR =>
+            $this->cookie,
+
+            CURLOPT_COOKIEFILE =>
+            $this->cookie,
+
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+
+            CURLOPT_FOLLOWLOCATION => true,
+
+            CURLOPT_RETURNTRANSFER => true,
+
+        ]);
+
+        curl_exec($curl);
+
+        $size =
+            curl_getinfo(
+                $curl,
+                CURLINFO_CONTENT_LENGTH_DOWNLOAD
+            );
+
+        curl_close($curl);
+
+        return $size;
+    }
+
+
+    /*
+    ===================================
+    LISTE COMPETITIONS
+    ===================================
+    */
+
+    public function getCompetitions()
     {
-        try {
+        $config = config('Copain');
 
-            $params = http_build_query([
+        $url =
+            $config->url_json .
+            'concours.json';
 
-                'ref'  => $ref,
-                'type' => $type,
+        $json =
+            @file_get_contents($url);
 
-            ]);
+        if (!$json) {
 
-            $curl = curl_init();
+            log_message(
+                'error',
+                'JSON LIST ERROR'
+            );
 
-            curl_setopt_array($curl, [
+            return [
+                'competitions' => [],
+                'rcompetitions' => []
+            ];
+        }
 
-                CURLOPT_URL =>
-                $this->url_generate_zip,
+        $data =
+            json_decode(
+                $json,
+                true
+            );
+
+        if (!$data) {
+
+            return [
+                'competitions' => [],
+                'rcompetitions' => []
+            ];
+        }
+
+        return $data;
+    }
+
+    /*
+    ===================================
+    CURL POST GENERIC
+    ===================================
+    */
+
+    private function curlPost($url, $params)
+    {
+        $curl = curl_init();
+
+        curl_setopt_array(
+            $curl,
+            [
+
+                CURLOPT_URL => $url,
 
                 CURLOPT_POST => true,
 
-                CURLOPT_POSTFIELDS => $params,
+                CURLOPT_POSTFIELDS =>
+                http_build_query($params),
 
                 CURLOPT_RETURNTRANSFER => true,
 
@@ -131,180 +357,114 @@ class CopainClient
                 CURLOPT_SSL_VERIFYPEER => false,
                 CURLOPT_SSL_VERIFYHOST => false,
 
+                CURLOPT_CONNECTTIMEOUT => 30,
+                CURLOPT_TIMEOUT => 300,
+
                 CURLOPT_FOLLOWLOCATION => true,
 
-                CURLOPT_CONNECTTIMEOUT => 10,
-                CURLOPT_TIMEOUT => 120,
-
                 CURLOPT_USERAGENT =>
-                "Mozilla/5.0",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
 
                 CURLOPT_REFERER =>
                 "https://copain.federation-photo.fr/",
 
-            ]);
+                CURLOPT_HTTPHEADER => [
 
-            $response =
-                curl_exec($curl);
+                    "Accept: */*",
+                    "Connection: keep-alive",
+                    "Origin: https://copain.federation-photo.fr"
 
-            if ($response === false) {
+                ],
 
-                log_message(
-                    'error',
-                    'ZIP CURL ERROR: ' .
-                        curl_error($curl)
-                );
+            ]
+        );
 
-                curl_close($curl);
+        $response = curl_exec($curl);
 
-                return null;
-            }
-
-            curl_close($curl);
-
-            $json =
-                json_decode(
-                    $response,
-                    true
-                );
-
-            if (!$json) {
-
-                log_message(
-                    'error',
-                    'ZIP JSON ERROR'
-                );
-
-                return null;
-            }
-
-            return $json;
-        } catch (\Throwable $e) {
+        if (curl_errno($curl)) {
 
             log_message(
                 'error',
-                'ZIP EXCEPTION ' .
-                    $e->getMessage()
+                'CURL ERROR: ' . curl_error($curl)
             );
-
-            return null;
         }
+
+        curl_close($curl);
+
+        return json_decode($response, true);
     }
 
-
     /*
-    ======================
-    DOWNLOAD AVEC COOKIE
-    ======================
-    */
+======================
+AUTO LOGIN
+======================
+*/
 
-    public function downloadFile($url, $dest)
+    public function autoLogin()
     {
-        $curl = curl_init();
+        $config = config('Copain');
 
-        $fp = fopen($dest, 'w');
+        if (
+            empty($config->email)
+            || empty($config->password)
+        ) {
+            throw new \Exception(
+                "Copain email/password manquant"
+            );
+        }
+
+        return $this->login(
+            $config->email,
+            $config->password
+        );
+    }
+
+    public function debugListe()
+    {
+        $url = $this->url_liste;
+
+        $curl = curl_init($url);
 
         curl_setopt_array($curl, [
 
-            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
 
-            CURLOPT_FILE => $fp,
-
-            CURLOPT_COOKIEJAR => $this->cookie,
+            CURLOPT_COOKIEJAR  => $this->cookie,
             CURLOPT_COOKIEFILE => $this->cookie,
 
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
 
             CURLOPT_FOLLOWLOCATION => true,
-
-            CURLOPT_USERAGENT =>
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-
-            CURLOPT_REFERER =>
-            "https://copain.federation-photo.fr/",
-
         ]);
 
         curl_exec($curl);
 
         curl_close($curl);
 
-        fclose($fp);
-
-        return file_exists($dest) && filesize($dest) > 0;
+        exit;
     }
 
-
-    /*
-    ======================
-    CURL POST
-    ======================
-    */
-
-    private function curlPost($url, $params)
+    public function fetchCompetitionData(int $id, int $type): array
     {
-        $curl = curl_init();
+        $this->autoLogin();
 
-        curl_setopt_array($curl, [
+        $res = $this->importCompetition($id, $type, 1);
 
-            CURLOPT_URL => $url,
+        if (empty($res) || $res['code'] != 0) {
+            throw new \Exception('Import failed');
+        }
 
-            CURLOPT_POST => true,
-
-            CURLOPT_POSTFIELDS =>
-            http_build_query($params),
-
-            CURLOPT_RETURNTRANSFER => true,
-
-            CURLOPT_COOKIEJAR => $this->cookie,
-            CURLOPT_COOKIEFILE => $this->cookie,
-
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT => 300,
-
-            CURLOPT_FOLLOWLOCATION => true,
-
-            CURLOPT_USERAGENT =>
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-
-            CURLOPT_REFERER =>
-            "https://copain.federation-photo.fr/",
-
-            CURLOPT_HTTPHEADER => [
-
-                "Accept: */*",
-                "Connection: keep-alive",
-                "Origin: https://copain.federation-photo.fr"
-
-            ],
-
-        ]);
-
-        $response = curl_exec($curl);
-
-        curl_close($curl);
-
-        return json_decode($response, true);
+        return [
+            'compet' => json_decode(file_get_contents($res['file_compet']), true),
+            'photos' => json_decode(file_get_contents($res['file_photos']), true),
+        ];
     }
-    /*
-======================
-LISTE COMPETITIONS
-======================
-*/
 
-    public function getCompetitions()
+    public function fetchCompetitionImages(int $id, int $type): string
     {
-        $config = config('Copain');
+        $res = $this->generateZip($id, $type);
 
-        $url = $config->url_liste_competitions;
-
-        return $this->curlPost(
-            $url,
-            []
-        );
+        return $res['zip_photos'] ?? null;
     }
 }

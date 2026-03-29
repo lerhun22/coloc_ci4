@@ -1,12 +1,10 @@
 /* =====================================================
    LAYOUT GLOBAL
-   Structure principale de l'application
-   Ne pas mettre de styles de pages ici
-   ===================================================== */
+===================================================== */
 
 html,
 body {
-  min-height: 100%;
+  height: 100%;
 }
 
 body {
@@ -15,18 +13,18 @@ body {
 
 /* ===============================
    APP CONTAINER
-   =============================== */
+=============================== */
 
 .app-container {
   min-height: 100vh;
+
   display: flex;
   flex-direction: column;
 }
 
 /* ===============================
    MAIN CONTENT
-   zone centrale entre header et footer
-   =============================== */
+=============================== */
 
 .main-content {
   flex: 1;
@@ -35,31 +33,25 @@ body {
   flex-direction: column;
 
   width: 100%;
-  max-width: 100%;
+
+  height: 100%;
 }
 
 /* ===============================
-   MAIN (contenu des pages)
-   =============================== */
-
-.main-content {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-/* wrapper centré */
+   WRAPPER
+=============================== */
 
 .page-wrapper {
   width: 100%;
+
   max-width: 1200px;
-  padding: 20px;
-}
 
-.app-footer {
-  width: 100%;
-}
+  margin: 0 auto;
 
-.app-footer .page-wrapper {
-  padding: 10px 20px;
+  padding: 10px;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
 }

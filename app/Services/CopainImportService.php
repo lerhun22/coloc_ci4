@@ -2,62 +2,97 @@
 
 namespace App\Services;
 
-use App\Libraries\CopainLegacyReader;
-use App\Models\CompetitionModel;
+use App\Libraries\CopainClient;
+use App\Services\CopainLegacyReaderService;
+use App\Workflows\ImportWorkflow;
 
 class CopainImportService
 {
-    protected $reader;
-    protected $competitionModel;
+    protected CopainClient $client;
+    protected CopainLegacyReaderService $legacyReader;
+    protected ImportWorkflow $workflow;
 
-    public function __construct()
-    {
-        $this->reader = new CopainLegacyReader();
-        $this->competitionModel = new CompetitionModel();
+    public function __construct(
+        CopainClient $client,
+        CopainLegacyReaderService $legacyReader,
+        ImportWorkflow $workflow
+    ) {
+        $this->client = $client;
+        $this->legacyReader = $legacyReader;
+        $this->workflow = $workflow;
     }
 
-    public function importCompetitions($email, $password)
+    /**
+     * Point d’entrée unique
+     *
+     * @param array $params
+     *  - ['id' => int]              → import COPAIN
+     *  - ['zip_path' => string]     → import ZIP local
+     *
+     * @return array
+     */
+    public function import(array $params): array
     {
-        $data = $this->reader->getCompetitions($email, $password);
+        // 1. Déterminer la source
+        $source = $this->resolveSource($params);
 
-        if ($data['code'] != 0) {
-            return false;
+        // 2. Charger les données
+        $rawData = $this->load($source, $params);
+
+        // 3. Normaliser (format unique)
+        $normalized = $this->normalize($rawData);
+
+        // 4. Lancer le workflow (async ou non)
+        return $this->workflow->start($normalized);
+    }
+
+    /**
+     * Détermine la source d'import
+     */
+    protected function resolveSource(array $params): string
+    {
+        if (!empty($params['zip_path'])) {
+            return 'zip';
         }
 
-        $count = 0;
-
-        if (!empty($data['competitions'])) {
-
-            foreach ($data['competitions'] as $c) {
-
-                $this->competitionModel->save([
-                    'id'     => $c['id'],
-                    'nom'    => $c['nom'],
-                    'saison' => $c['saison'],
-                    'urs_id' => $c['urs_id'] ?? null,
-                    'type'   => 'N'
-                ]);
-
-                $count++;
-            }
+        if (!empty($params['id'])) {
+            return 'copain';
         }
 
-        if (!empty($data['rcompetitions'])) {
+        throw new \InvalidArgumentException('Missing import parameters');
+    }
 
-            foreach ($data['rcompetitions'] as $c) {
+    /**
+     * Charge les données depuis la bonne source
+     */
+    protected function load(string $source, array $params): array
+    {
+        return match ($source) {
 
-                $this->competitionModel->save([
-                    'id'     => $c['id'],
-                    'nom'    => $c['nom'],
-                    'saison' => $c['saison'],
-                    'urs_id' => $c['urs_id'],
-                    'type'   => 'R'
-                ]);
+            'copain' => $this->client->fetchCompetitionData(
+                $params['id'],
+                $params['type'] ?? 0
+            ),
 
-                $count++;
-            }
-        }
+            'zip' => $this->legacyReader->read(
+                $params['zip_path']
+            ),
+        };
+    }
 
-        return $count;
+    /**
+     * Normalisation UNIQUE (clé du système)
+     *
+     * Règles :
+     *  - type = (urs_id ? regional : national)
+     *  - year = saison
+     *  - folder = competXX
+     */
+    protected function normalize(array $data): array
+    {
+        return [
+            'compet' => $data['compet'],
+            'images' => $data['photos'] ?? []
+        ];
     }
 }

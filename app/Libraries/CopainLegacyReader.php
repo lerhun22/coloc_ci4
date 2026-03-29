@@ -59,6 +59,14 @@ class CopainLegacyReader
 
         curl_close($curl);
 
+        $data = json_decode($response, true);
+        //dd($data['competitions'][0]);
+        //dd($data['competitions']);
+        //dd($data['rcompetitions']);
+        //print_r($data['competitions'][0]);
+        //print_r($data['rcompetitions'][0]);
+        //exit;
+
         return json_decode($response, true);
     }
 }

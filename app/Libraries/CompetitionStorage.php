@@ -74,84 +74,51 @@ class CompetitionStorage
     =========================
     */
 
-    public function getCompetitionId(string $code)
+    public function registerCompetition(array $compet)
     {
         $model = new CompetitionModel();
-
-        $row = $model
-            ->where('numero', $code)
-            ->first();
-
-        return $row['id'] ?? null;
-    }
-    public function registerCompetition(string $code)
-    {
-        $model = new CompetitionModel();
-
-        $parts = explode('_', $code);
-
-        if (count($parts) < 4) {
-            throw new \Exception("Format competition invalide");
-        }
-
-        $saison = (int)$parts[0];
-        $urs    = (int)$parts[1];
-        $type   = (int)$parts[2];
-        $numero = (int)$parts[3];
-
 
         $existing = $model
-            ->where('id', $numero)
+            ->where('id', $compet['id'])
             ->first();
 
         if ($existing) {
             return $existing['id'];
         }
 
-
-        /*
-    ============================
-    VALEURS PAR DEFAUT MODE ZIP
-    ============================
-    */
-
         $data = [
 
-            'id' => $numero,
+            'id'     => $compet['id'],      // 🔥 ID réel Copain
+            'numero' => $compet['numero'],  // 🔥 vrai numero
+            'urs_id' => $compet['urs_id'] ?? null,
 
-            'numero' => $type,
+            'saison' => $compet['saison'],
+            'type'   => $compet['type'] ?? 0,
 
-            'urs_id' => $urs,
+            'nom' => $compet['nom'],        // 🔥 vrai nom
 
-            'saison' => $saison,
+            'date_competition' => $compet['date_competition'] ?? date('Y-m-d'),
 
-            'type' => $type,
+            'max_photos_club' => $compet['max_photos_club'] ?? 999,
+            'max_photos_auteur' => $compet['max_photos_auteur'] ?? 99,
 
-            'nom' => $code,
+            'param_photos_club' => $compet['param_photos_club'] ?? 0,
+            'param_photos_auteur' => $compet['param_photos_auteur'] ?? 0,
 
-            'date_competition' => date('Y-m-d'),
+            'quota' => $compet['quota'] ?? 0,
 
-            'max_photos_club' => 999,
-            'max_photos_auteur' => 99,
+            'note_min' => $compet['note_min'] ?? 6,
+            'note_max' => $compet['note_max'] ?? 20,
 
-            'param_photos_club' => 0,
-            'param_photos_auteur' => 0,
-
-            'quota' => 0,
-
-            'note_min' => 6,
-            'note_max' => 20,
-
-            'nb_auteurs_ur_n2' => 3,
-            'nb_clubs_ur_n2' => 7,
+            'nb_auteurs_ur_n2' => $compet['nb_auteurs_ur_n2'] ?? 3,
+            'nb_clubs_ur_n2' => $compet['nb_clubs_ur_n2'] ?? 7,
 
             'pte' => 0,
-            'nature' => 0
-
+            'nature' => $compet['nature'] ?? 0
         ];
 
         $model->insert($data);
 
-        return $numero;
+        return $compet['id'];
     }
 }

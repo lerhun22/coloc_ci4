@@ -1,5 +1,7 @@
 <?= $this->extend('layout/default') ?>
 
+<?php $full = true; ?>
+
 <?= $this->section('styles') ?>
 <link rel="stylesheet" href="<?= base_url('css/jugement.css') ?>">
 <?= $this->endSection() ?>
