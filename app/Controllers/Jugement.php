@@ -34,11 +34,18 @@ class Jugement extends BaseController
         // 🔥 récupération via session (BaseController)
         $competition_id = $this->requireCompetition();
 
-        $competition = $this->data['activeCompetition'];
+        $competition = $this->competitionModel->find($competition_id);
 
         if (!$competition) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
+
+        $storage = new \App\Libraries\CompetitionStorage();
+        $photosUrl = base_url($storage->getPhotosUrl($competition));
+        $photosPath = $storage->getPhotosPath($competition);
+
+        //dd($photosPath, $photosUrl);
+
 
         /*
         =====================
@@ -113,6 +120,9 @@ class Jugement extends BaseController
         //log_message('debug', json_encode($photos[0]));
         //log_message('debug', print_r($photos,true));
 
+        log_message('debug', "photoPath  : " . $photosPath);
+        log_message('debug', "PhotoUrl   : " . $photosUrl);
+
 
         if (empty($photos)) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
@@ -136,10 +146,9 @@ class Jugement extends BaseController
         =====================
         */
 
-        $photosPath =
-            'uploads/competitions/' .
-            $competitionFolder .
-            '/photos';
+        $storage = new \App\Libraries\CompetitionStorage();
+
+        $photosPath = $storage->getPhotosPath($competition);
 
         /*
         =====================
@@ -158,6 +167,7 @@ class Jugement extends BaseController
             'nb_juges' => $nb_juges,
 
             'competitionFolder' => $competitionFolder,
+            'photosUrl' => $photosUrl,
             'photosPath' => $photosPath,
 
             'position' => 1,

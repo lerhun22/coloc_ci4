@@ -10,68 +10,49 @@
 
 <style>
     .zoom-overlay {
-    position: fixed;        /* 🔥 IMPORTANT */
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
 
-    background: rgba(0,0,0,0.9);
+    .zoom-overlay.active {
+        display: flex;
+    }
 
-    display: none;
-    justify-content: center;
-    align-items: center;
-
-    z-index: 9999;
-}
-
-.zoom-overlay.active {
-    display: flex;
-}
-
-#zoomImage {
-    max-width: 90%;
-    max-height: 90%;
-}
+    #zoomImage {
+        max-width: 90%;
+        max-height: 90%;
+    }
 </style>
 
+<!-- 🔥 CONFIG JS CENTRALISÉE -->
 <script>
-    let competition_id = <?= $competition['id'] ?>;
-    console.log("competition_id JS =", competition_id);
-    let nb_juges = <?= $nb_juges ?>;
-    let photosPath = "<?= $photosPath ?>";  
-    let base_url = "<?= base_url() ?>";
-    const photos = <?= json_encode(array_map(function($p) {
-    return [
-        'id' => $p['ean'],
-        'url' => base_url('uploads/competitions/' . $p['ean'])
-    ];
-}, $photos)) ?>;
+    window.APP = {
+        baseUrl: "<?= base_url() ?>",
+        photosUrl: "<?= $photosUrl ?>",
+        competitionId: <?= $competition['id'] ?>,
+        nbJuges: <?= $nb_juges ?>
+    };
 
-let currentIndex = <?= isset($position) ? max(0, $position - 1) : 0 ?>;
-
-if (currentIndex >= photos.length) {
-    currentIndex = 0;
-}
-
+    console.log("APP CONFIG 👉", window.APP);
 </script>
-
-
 
 <div class="jugement-container">
 
-    <!-- =====================================================
+    <!-- =========================
          FILTRES
-    ====================================================== -->
+    ========================== -->
 
     <div class="jugement-filters">
 
-        <!-- =========================
-         LIGNE HAUT
-    ========================== -->
-
         <div class="filters-top">
-
             <div class="filters-left">
 
                 <div>
@@ -85,13 +66,7 @@ if (currentIndex >= photos.length) {
                 </div>
 
             </div>
-
         </div>
-
-
-        <!-- =========================
-         BLOC INFO COMPETITION
-    ========================== -->
 
         <div class="filters-info">
 
@@ -115,6 +90,7 @@ if (currentIndex >= photos.length) {
             </div>
 
         </div>
+
         <div class="filters-right">
             <span id="photo-position"><?= $position ?></span>
             /
@@ -123,18 +99,15 @@ if (currentIndex >= photos.length) {
 
     </div>
 
-
-
-    <!-- =====================================================
+    <!-- =========================
          GRILLE PHOTOS
-    ====================================================== -->
+    ========================== -->
 
     <div class="jugement-grid">
 
         <?php foreach ($photos as $p): ?>
 
             <?php
-
             if ($p['nb_notes'] == 0) {
                 $class = 'pending';
             } elseif ($p['nb_notes'] < $nb_juges) {
@@ -142,10 +115,11 @@ if (currentIndex >= photos.length) {
             } else {
                 $class = 'done';
             }
-
             ?>
 
-            <div class="photo-tile <?= $class ?>" data-id="<?= $p['photo_id'] ?>" data-ean="<?= $p['ean'] ?>"
+            <div class="photo-tile <?= $class ?>"
+                data-id="<?= $p['photo_id'] ?>"
+                data-ean="<?= $p['ean'] ?>"
                 data-passage="<?= $p['passage'] ?>">
 
                 <?= $p['passage'] ?>
@@ -156,34 +130,25 @@ if (currentIndex >= photos.length) {
 
     </div>
 
-
-
-    <!-- =====================================================
+    <!-- =========================
          MAIN
-    ====================================================== -->
+    ========================== -->
 
     <div class="jugement-main">
 
-        <!-- ======================
-             PHOTO
-        ======================= -->
-
+        <!-- PHOTO -->
         <div class="jugement-photo">
 
             <?php if (!empty($photo)): ?>
-                <img 
-                    src="<?= competition_photo_url($competition, $photo['ean']) ?>"
+                <img
+                    src="<?= $photosUrl . '/' . $photo['ean'] . '.jpg' ?>"
                     class="photo-juge"
-                    id="photo-active"
-                >
+                    id="photo-active">
             <?php endif; ?>
 
         </div>
 
-        <!-- ======================
-             NOTES
-        ======================= -->
-
+        <!-- NOTES -->
         <div class="jugement-notes">
 
             <h3>Notes</h3>
@@ -195,7 +160,11 @@ if (currentIndex >= photos.length) {
                     <?= esc($j['nom']) ?>
                 </div>
 
-                <input type="number" class="note-input" data-juge="<?= $j['id'] ?>" min="6" max="20">
+                <input type="number"
+                    class="note-input"
+                    data-juge="<?= $j['id'] ?>"
+                    min="6"
+                    max="20">
 
             <?php endforeach; ?>
 
@@ -208,34 +177,24 @@ if (currentIndex >= photos.length) {
 
         </div>
 
-
-        <!-- ======================
-             INFOS
-        ======================= -->
-
+        <!-- INFOS -->
         <div class="jugement-infos">
+
             <h3><?= esc($competition['nom']) ?></h3>
+
             <p>
                 <strong>Titre :</strong>
-                <span id="photo-titre">
-                    <?= $photo['titre'] ?>
-                </span>
+                <span id="photo-titre"><?= $photo['titre'] ?></span>
             </p>
 
             <p>
                 <strong>EAN :</strong>
-                <span id="photo-ean">
-                    <?= $photo['ean'] ?>
-                </span>
+                <span id="photo-ean"><?= $photo['ean'] ?></span>
             </p>
 
             <p>
                 <strong>Dossier :</strong><br>
-
-                <span class="photo-path">
-                    <?= esc($photosPath) ?>
-                </span>
-
+                <span class="photo-path"><?= esc($photosPath) ?></span>
             </p>
 
             <div class="jugement-stats">
@@ -262,42 +221,31 @@ if (currentIndex >= photos.length) {
 
             </div>
 
-
-            <!-- Disqualify -->
-
+            <!-- DISQUALIFY -->
             <div class="disqualify-box">
-
-                <button id="btn-disqualify" class="btn-disqualify" onclick="toggleDisqualify()">
+                <button id="btn-disqualify"
+                    class="btn-disqualify"
+                    onclick="toggleDisqualify()">
                     Disqualifier
                 </button>
-
             </div>
 
         </div>
 
-
     </div>
-
 
 </div>
 
 <?= $this->endSection() ?>
 
-<script>
-    console.log("COMPETITION", <?= $competition['id'] ?>);
-</script>
 
 <?= $this->section('scripts') ?>
 
-
-<!-- =====================================================
-     ZOOM OVERLAY
-===================================================== -->
-
+<!-- ZOOM -->
 <div id="zoomOverlay" class="zoom-overlay">
     <img id="zoomImage">
 </div>
 
-<script src="<?= base_url('js/jugement.js') ?>"></script>
+<script src="<?= base_url('js/jugement.js?v=' . time()) ?>"></script>
 
 <?= $this->endSection() ?>

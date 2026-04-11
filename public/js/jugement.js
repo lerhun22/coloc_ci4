@@ -26,10 +26,9 @@ let isLoading = false;
 ============================================================ */
 
 function getPhotoUrl(ean) {
-    let cleanBase = base_url.replace(/\/$/, '');
-    let cleanPath = photosPath.replace(/^\//, '');
-    return cleanBase + "/" + cleanPath + "/" + ean + ".jpg";
+    return window.APP.photosUrl.replace(/\/$/, '') + "/" + ean + ".jpg";
 }
+
 
 /* ============================================================
    🧰 UTILS
@@ -50,14 +49,15 @@ function loadPhoto(id) {
 
     isLoading = true;
 
-    console.log("LOAD PHOTO ID:", id);
+    console.log("URL IMAGE 👉", window.APP.baseUrl + "jugement/photo/" + id);
 
-    fetch(base_url + "/jugement/photo/" + id)
+
+    fetch(window.APP.baseUrl + "jugement/photo/" + id)
         .then(r => r.json())
         .then(data => {
 
             if (!data.photo) {
-                console.error("❌ PHOTO NOT FOUND");
+                console.error("❌ PHOTO NOT FOUND",data);
                 isLoading = false;
                 return;
             }
@@ -101,6 +101,7 @@ function loadPhoto(id) {
             setTimeout(() => {
                 focusBarcodeInput();
             }, 0);
+
         })
         .catch(err => {
             console.error("❌ FETCH ERROR", err);
@@ -152,6 +153,7 @@ function rebuildPhotoIndex() {
     });
 
     console.log("INDEX:", photoIndex);
+    console.log("POSITION:", photoPosition);
 }
 
 /* ============================================================
@@ -163,6 +165,12 @@ function nextPhoto() {
     if (!isReady || !photo_id) return;
 
     let pos = photoPosition[String(photo_id)];
+
+    if (pos === undefined) {
+        console.error("ID introuvable dans photoPosition", photo_id);
+        return;
+    }
+
     let next = photoIndex[pos + 1];
 
     if (next) loadPhoto(next);
@@ -173,6 +181,12 @@ function prevPhoto() {
     if (!isReady || !photo_id) return;
 
     let pos = photoPosition[String(photo_id)];
+
+    if (pos === undefined) {
+        console.error("ID introuvable dans photoPosition", photo_id);
+        return;
+    }
+
     let prev = photoIndex[pos - 1];
 
     if (prev) loadPhoto(prev);
@@ -277,6 +291,8 @@ function applyFilters() {
 
     rebuildPhotoIndex();
 
+    
+
     if (!photoIndex.includes(photo_id) && photoIndex.length > 0) {
         loadPhoto(photoIndex[0]);
     }
@@ -290,8 +306,16 @@ function initKeyboard() {
 
     document.addEventListener('keydown', function(e) {
 
-        const tag = document.activeElement.tagName;
-        if (tag === "INPUT") return;
+        const active = document.activeElement;
+        const tag = active.tagName;
+
+        // 🔥 on bloque SAUF pour les flèches
+        if (tag === "INPUT") {
+
+            if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") {
+                return;
+            }
+        }
 
         if (e.key === "ArrowRight") {
             e.preventDefault();
@@ -383,3 +407,4 @@ function focusBarcodeInput() {
     input.focus();
     input.select(); // 🔥 pratique pour scanner / retaper direct
 }
+

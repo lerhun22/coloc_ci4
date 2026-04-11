@@ -19,6 +19,17 @@ class CompetitionStorage
     =========================
     */
 
+    public function getPhotosPath($competition): string
+    {
+        return $this->resolvePath($competition) . 'photos/';
+    }
+
+    public function getPhotosUrl($competition): string
+    {
+        return 'uploads/competitions/' . $this->getCode($competition) . '/photos/';
+    }
+
+
     private function normalize($competition): object
     {
         return is_array($competition)
@@ -36,11 +47,8 @@ class CompetitionStorage
     {
         $competition = $this->normalize($competition);
 
-        return empty($competition->urs_id)
-            || $competition->type === 'N'
-            || $competition->type === 2;
+        return in_array((int)$competition->type, [2, 3]);
     }
-
     /*
     =========================
     CORE PATH LOGIC
@@ -59,7 +67,7 @@ class CompetitionStorage
             return "{$saison}_N_{$id}_00_{$numero}";
         }
 
-        $ur = str_pad((string)($competition->urs_id ?? 0), 2, '0', STR_PAD_LEFT);
+        $ur = str_pad((string)$competition->urs_id, 2, '0', STR_PAD_LEFT);
 
         return "{$saison}_R_{$id}_{$ur}_{$numero}";
     }
@@ -83,16 +91,25 @@ class CompetitionStorage
     {
         $competition = $this->normalize($competition);
 
+        $expected = $this->getBasePath($competition);
+
         if (!empty($competition->folder)) {
 
             $folder = rtrim($competition->folder, '/') . '/';
+
+            // 🔥 sécurité : si type != folder → on corrige
+            if ($folder !== $expected && is_dir($expected)) {
+                return $expected;
+            }
 
             if (is_dir($folder)) {
                 return $folder;
             }
         }
 
-        return $this->getBasePath($competition);
+
+
+        return $expected;
     }
 
     /*
@@ -100,11 +117,6 @@ class CompetitionStorage
     SUB PATHS
     =========================
     */
-
-    public function getPhotosPath($competition): string
-    {
-        return $this->resolvePath($competition) . 'photos/';
-    }
 
     public function getThumbsPath($competition): string
     {
